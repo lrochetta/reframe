@@ -11,5 +11,5 @@ steps:
             "/workspace/dist/*",
             "-u", "$_PYPI_USERNAME",
             "-p", "$_PYPI_PASSWORD",
-            " — verbose", ]
+            "— verbose", ]
     waitFor: [ "build wheel" ]
