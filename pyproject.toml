@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "nnext"
-version = "0.0.39"
+version = "0.0.40"
 description = "Client library for the NNext vector search engine"
-authors = ["NNext Team <pynnext@nnext.ai>"]
+authors = ["NNext Team <team@nnext.ai>"]
 packages = [
-    {include = "nnext"}
+    { include = "nnext" }
 ]
 readme = "README.md"
-homepage = "https://github.com/nnextdb/pynnext"
-repository = "https://github.com/nnextdb/pynnext"
+homepage = "https://nnext.io/docs/Python-22a9be22c5cf4869bda849e3f06c0993"
+repository = "https://github.com/nnextai/pynnext"
 keywords = ["neural", "semantic", "search", "engine", "client"]
 
 
