@@ -45,7 +45,6 @@ class NNextClient:
         port: Port of the REST API interface. Default: 6040
         grpc_port: Port of the gRPC interface. Default: 6041
         prefer_grpc: If `true` - use gPRC interface whenever possible in custom methods.
-        https: If `true` - use HTTPS(SSL) protocol. Default: `false`
         api_key: API key for authentication in NNext Cloud. Default: `None`
         **kwargs: Additional arguments passed directly into REST client initialization
     """
