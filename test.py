@@ -1,7 +1,7 @@
 from nnext import NNextClient
 from nnext.http.models import Distance
 
-nnclient = NNextClient(host="localhost", grpc_port=6040)
+nnclient = NNextClient(host="localhost", port=6040)
 
 nnclient.recreate_collection(
     collection_name="movie_collection",

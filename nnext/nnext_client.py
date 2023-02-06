@@ -51,11 +51,10 @@ class NNextClient:
     """
 
     def __init__(self,
-                 host="localhost",
+                 host="api.nnext.io",
                  port=6040,
                  grpc_port=6041,
-                 prefer_grpc=True,
-                 https=None,
+                 prefer_grpc=False,
                  api_key=None,
                  **kwargs):
         self._prefer_grpc = prefer_grpc
@@ -63,7 +62,7 @@ class NNextClient:
         self._host = host
         self._port = port
 
-        self._https = https
+        self._https = True
         self._api_key = api_key
 
         http2 = kwargs.pop("http2", False)
@@ -94,7 +93,6 @@ class NNextClient:
         self._grpc_collections_client: Optional[grpc.CollectionsStub] = None
         self._event_loop = None
         if prefer_grpc:
-            print("Connecting to NNext GRPC")
             asyncio.set_event_loop(self.event_loop)
             self._init_grpc_points_client(self._grpc_headers)
             self._init_grpc_collections_client(self._grpc_headers)
