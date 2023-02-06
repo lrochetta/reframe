@@ -41,21 +41,21 @@ class NNextClient:
         - For gRPC: :class:`~nnext.grpc.PointsStub` and :class:`~nnext.grpc.CollectionsStub`
 
     Args:
-        host: Host name of NNext service. Default: `localhost`
+        host: Host name of NNext service. Default: `api.nnext.io`
         port: Port of the REST API interface. Default: 6040
         grpc_port: Port of the gRPC interface. Default: 6041
         prefer_grpc: If `true` - use gPRC interface whenever possible in custom methods.
-        api_key: API key for authentication in NNext Cloud. Default: `None`
+        api_key: API key for authentication in NNext Cloud.
         **kwargs: Additional arguments passed directly into REST client initialization
     """
 
     def __init__(self,
+                 api_key,
                  host="api.nnext.io",
                  port=6040,
                  version="v0.0.1",
                  grpc_port=6041,
                  prefer_grpc=False,
-                 api_key=None,
                  **kwargs):
         self._prefer_grpc = prefer_grpc
         self._grpc_port = grpc_port
