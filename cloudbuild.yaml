@@ -1,15 +1,15 @@
 steps:
   - name: 'us-docker.pkg.dev/$PROJECT_ID/dock/builder'
-    id: "Build wheel"
+    id: "build wheel"
     entrypoint: "poetry"
     args: [ "build" ]
     waitFor: [ "-" ]
   - name: 'us-docker.pkg.dev/$PROJECT_ID/dock/builder'
-    id: "Push to pypi"
+    id: "push to pypi"
     entrypoint: "twine"
     args: [ "upload",
             "/workspace/dist/*",
             "-u", "$_PYPI_USERNAME",
             "-p", "$_PYPI_PASSWORD",
             " — verbose", ]
-    waitFor: [ "Build wheel" ]
+    waitFor: [ "build wheel" ]
