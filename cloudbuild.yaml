@@ -2,7 +2,7 @@ steps:
   - name: 'us-docker.pkg.dev/$PROJECT_ID/dock/builder'
     id: "build wheel"
     entrypoint: "poetry"
-    args: [ "build" ]
+    args: [ "build", "— verbose" ]
     waitFor: [ "-" ]
   - name: 'us-docker.pkg.dev/$PROJECT_ID/dock/builder'
     id: "push to pypi"
