@@ -53,6 +53,7 @@ class NNextClient:
     def __init__(self,
                  host="api.nnext.io",
                  port=6040,
+                 version="v0.0.1",
                  grpc_port=6041,
                  prefer_grpc=False,
                  api_key=None,
@@ -61,6 +62,7 @@ class NNextClient:
         self._grpc_port = grpc_port
         self._host = host
         self._port = port
+        self._version = version
 
         self._https = True
         self._api_key = api_key
@@ -70,7 +72,7 @@ class NNextClient:
         self._rest_headers = kwargs.pop("headers", {})
         if api_key is not None:
             if self._https is False:
-                warnings.warn("Api key is used with unsecure connection.")
+                warnings.warn("API key is used with unsecure connection.")
             if self._https is None:
                 self._https = True
 
@@ -79,7 +81,7 @@ class NNextClient:
             self._rest_headers['api-key'] = api_key
             self._grpc_headers['api-key'] = api_key
 
-        self.rest_uri = f"http{'s' if self._https else ''}://{host}:{port}"
+        self.rest_uri = f"https://{host}}"
         self._rest_args = {
             "headers": self._rest_headers,
             "http2": http2,
