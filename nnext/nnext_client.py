@@ -80,7 +80,7 @@ class NNextClient:
             self._rest_headers['api-key'] = api_key
             self._grpc_headers['api-key'] = api_key
 
-        self.rest_uri = f"https://{host}}"
+        self.rest_uri = f"https://{self._host}/{self._version}/nn"
         self._rest_args = {
             "headers": self._rest_headers,
             "http2": http2,
@@ -1004,6 +1004,97 @@ class NNextClient:
 
         return self.http.collections_api.delete_collection(
             collection_name,
+            timeout=timeout
+        )
+
+    def create_table(self,
+                     table_name: str,
+                     vector_size: int,
+                     distance: types.Distance,
+                     shard_number: Optional[int] = None,
+                     on_disk_payload: Optional[bool] = None,
+                     hnsw_config: Optional[types.HnswConfigDiff] = None,
+                     optimizers_config: Optional[types.OptimizersConfigDiff] = None,
+                     wal_config: Optional[types.WalConfigDiff] = None,
+                     timeout: Optional[int] = None
+                     ):
+        """Delete and create empty collection with given parameters
+
+        Args:
+            table_name: Name of the table to recreate
+            vector_size: Vector size of the collection
+            distance: Which metric to use
+            shard_number: Number of shards in collection. Default is 1, minimum is 1.
+            on_disk_payload:
+                If true - point`s payload will not be stored in memory.
+                It will be read from the disk every time it is requested.
+                This setting saves RAM by (slightly) increasing the response time.
+                Note: those payload values that are involved in filtering and are indexed - remain in RAM.
+            hnsw_config: Params for HNSW index
+            optimizers_config: Params for optimizer
+            wal_config: Params for Write-Ahead-Log
+            timeout:
+                Wait for operation commit timeout in seconds.
+                If timeout is reached - request will return with service error.
+
+        Returns:
+            Operation result
+        """
+
+        if isinstance(distance, grpc.Distance):
+            distance = GrpcToRest.convert_distance(distance)
+
+        if isinstance(hnsw_config, grpc.HnswConfigDiff):
+            hnsw_config = GrpcToRest.convert_hnsw_config_diff(hnsw_config)
+
+        if isinstance(optimizers_config, grpc.OptimizersConfigDiff):
+            optimizers_config = GrpcToRest.convert_optimizers_config_diff(optimizers_config)
+
+        if isinstance(wal_config, grpc.WalConfigDiff):
+            wal_config = GrpcToRest.convert_wal_config_diff(wal_config)
+
+        # self.delete_collection(table_name)
+
+        create_table_request = rest.CreateTable(
+            table_name=table_name,
+            distance=distance,
+            vector_size=vector_size,
+            shard_number=shard_number,
+            on_disk_payload=on_disk_payload,
+            hnsw_config=hnsw_config,
+            optimizers_config=optimizers_config,
+            wal_config=wal_config
+        )
+
+        self.http.collections_api.create_table(
+            table_name=table_name,
+            create_table=create_table_request,
+            timeout=timeout
+        )
+
+    def exists_table(self,
+                     table_name: str,
+                     timeout: Optional[int] = None
+                     ):
+        """Check if a table exists
+
+        Args:
+            table_name: Name of the table to recreate
+            timeout:
+                Wait for operation commit timeout in seconds.
+                If timeout is reached - request will return with service error.
+
+        Returns:
+            Operation result
+        """
+
+        exists_table_request = rest.ExistsTable(
+            table_name=table_name
+        )
+
+        return self.http.collections_api.exists_table(
+            table_name=table_name,
+            exists_table=exists_table_request,
             timeout=timeout
         )
 
