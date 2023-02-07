@@ -1,4 +1,4 @@
-# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/3.png" height="100" alt="Apollo Client"></a>
+# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/3.png" alt="NNext Python Client"></a>
 
 ## About
 
@@ -35,4 +35,4 @@ nnclient = nnext.NNextClient(api_key="NNEXT_API_KEY")
 
 More documentation is available here:
 
-https://nnext.ai/docs
+<a href="https://nnext.ai/docs" target="_blank" rel="noopener noreferrer"><img src="https://d3g1vr8yw3euzd.cloudfront.net/3.png" height="100"></a>
