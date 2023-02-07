@@ -276,8 +276,8 @@ class GrpcToRest:
         )
 
     @classmethod
-    def convert_create_collection(cls, model: grpc.CreateCollection) -> rest.CreateCollection:
-        return rest.CreateCollection(
+    def convert_create_collection(cls, model: grpc.CreateCollection) -> rest.CreateDataset:
+        return rest.CreateDataset(
             collection_name=model.collection_name,
             vector_size=model.vector_size,
             distance=cls.convert_distance(model.distance),
@@ -630,7 +630,7 @@ class RestToGrpc:
         )
 
     @classmethod
-    def convert_create_collection(cls, model: rest.CreateCollection, collection_name: str) -> grpc.CreateCollection:
+    def convert_create_collection(cls, model: rest.CreateDataset, collection_name: str) -> grpc.CreateCollection:
         return grpc.CreateCollection(
             collection_name=collection_name,
             distance=cls.convert_distance(model.distance),

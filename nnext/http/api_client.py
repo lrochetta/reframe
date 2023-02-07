@@ -59,7 +59,7 @@ class ApiClient:
         ...
 
     def request(  # noqa F811
-        self, *, type_: Any, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+            self, *, type_: Any, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
     ) -> Any:
         if path_params is None:
             path_params = {}
@@ -117,18 +117,18 @@ class AsyncApiClient:
 
     @overload
     async def request(
-        self, *, type_: Type[T], method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+            self, *, type_: Type[T], method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
     ) -> T:
         ...
 
     @overload  # noqa F811
     async def request(
-        self, *, type_: None, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+            self, *, type_: None, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
     ) -> None:
         ...
 
     async def request(  # noqa F811
-        self, *, type_: Any, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
+            self, *, type_: Any, method: str, url: str, path_params: Dict[str, Any] = None, **kwargs: Any
     ) -> Any:
         if path_params is None:
             path_params = {}

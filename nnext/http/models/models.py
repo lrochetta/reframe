@@ -9,6 +9,7 @@ except ImportError:
 
 from pydantic import BaseModel, Field
 from pydantic.types import StrictBool, StrictInt, StrictStr
+import json
 
 
 class AbortTransferOperation(BaseModel):
@@ -181,6 +182,11 @@ class CountResult(BaseModel):
     count: int = Field(..., description="Number of points which satisfy the conditions")
 
 
+class TableExistsResult(BaseModel):
+    data: dict = Field(..., description="Number of points which satisfy the conditions")
+    exists: bool = Field(..., description="Number of points which satisfy the conditions")
+
+
 class CreateAlias(BaseModel):
     """
     Create alternative name for a collection. Collection will be available under both names for search, retrieve,
@@ -200,7 +206,7 @@ class CreateAliasOperation(BaseModel):
     create_alias: "CreateAlias" = Field(..., description="")
 
 
-class CreateCollection(BaseModel):
+class CreateDataset(BaseModel):
     """
     Operation for creating new collection and (optionally) specify index params
     """
@@ -227,6 +233,47 @@ class CreateCollection(BaseModel):
     )
     optimizers_config: Optional["OptimizersConfigDiff"] = Field(
         None, description="Custom params for Optimizers.  If none - values from service configuration file are used."
+    )
+
+
+class CreateTable(BaseModel):
+    """
+    Operation for creating new collection and (optionally) specify index params
+    """
+    table_name: str = Field(
+        ..., description="Name of the table to be created"
+    )
+    vector_size: int = Field(
+        ..., description="Operation for creating new collection and (optionally) specify index params"
+    )
+    distance: "Distance" = Field(
+        ..., description="Operation for creating new collection and (optionally) specify index params"
+    )
+    shard_number: Optional[int] = Field(
+        None,
+        description="Number of shards in collection. Default is 1 for standalone, otherwise equal to the number of nodes Minimum is 1",
+    )
+    on_disk_payload: Optional[bool] = Field(
+        None,
+        description="If true - point&#x27;s payload will not be stored in memory. It will be read from the disk every time it is requested. This setting saves RAM by (slightly) increasing the response time. Note: those payload values that are involved in filtering and are indexed - remain in RAM.",
+    )
+    hnsw_config: Optional["HnswConfigDiff"] = Field(
+        None, description="Custom params for HNSW index. If none - values from service configuration file are used."
+    )
+    wal_config: Optional["WalConfigDiff"] = Field(
+        None, description="Custom params for WAL. If none - values from service configuration file are used."
+    )
+    optimizers_config: Optional["OptimizersConfigDiff"] = Field(
+        None, description="Custom params for Optimizers.  If none - values from service configuration file are used."
+    )
+
+
+class ExistsTable(BaseModel):
+    """
+    Operation for creating new collection and (optionally) specify index params
+    """
+    table_name: str = Field(
+        ..., description="Name of the table to be created"
     )
 
 
@@ -531,6 +578,15 @@ class IsEmptyCondition(BaseModel):
     """
 
     is_empty: "PayloadField" = Field(..., description="Select points with empty payload for a specified field")
+
+
+class InlineResponse2010(BaseModel):
+    time: Optional[float] = Field(None, description="Time spent to process this request")
+    status: Literal[
+        "ok",
+    ] = Field(None, description="")
+    data: Optional[dict] = Field(None, description="")
+    message: Optional[str] = Field(None, description="")
 
 
 class LocalShardInfo(BaseModel):
