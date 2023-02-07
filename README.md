@@ -1,4 +1,4 @@
-# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/3.png" alt="NNext Python Client"></a>
+# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="NNext Python Client"></a>
 
 ## About
 
