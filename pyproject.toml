@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nnext"
-version = "0.0.42"
+version = "0.0.43"
 description = "Client library for the NNext Neural search engine"
 authors = ["NNext Team <team@nnext.ai>"]
 packages = [
