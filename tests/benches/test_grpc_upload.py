@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from nnext import NNextClient
-from nnext.http.models import Distance
+from nnext.client.http import Distance
 
 COLLECTION_NAME = 'test_grpc_upload'
 VECTOR_SIZE = 256

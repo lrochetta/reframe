@@ -1,10 +1,7 @@
-from typing import Union, Type, List, Optional
+from typing import Union, List
 
-import betterproto
-from pydantic import BaseModel
-
-from nnext.http import models as rest
-from nnext import grpc
+from nnext.client.http import models as rest
+from nnext.client import grpc
 
 Filter = Union[rest.Filter, grpc.Filter]
 SearchParams = Union[rest.SearchParams, grpc.SearchParams]

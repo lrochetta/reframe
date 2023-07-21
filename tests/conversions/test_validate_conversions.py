@@ -1,6 +1,5 @@
 import inspect
 import re
-from typing import Union
 
 import betterproto
 from loguru import logger
@@ -16,7 +15,7 @@ def camel_to_snake(name):
 
 
 def test_conversion_completeness():
-    from nnext.http.models import models
+    from nnext.client.http.models import models
 
     print("")
 
@@ -26,7 +25,7 @@ def test_conversion_completeness():
         if (isinstance(cls, type) and issubclass(cls, BaseModel)) or (type(models.Match) is type(cls))
     ])
 
-    from nnext import grpc
+    from nnext.client import grpc
     grpc_classes = dict([
         (name, cls)
         for name, cls in grpc.__dict__.items()

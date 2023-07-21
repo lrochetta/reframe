@@ -3,7 +3,7 @@ from typing import List
 
 import betterproto
 
-from nnext import grpc
+from nnext.client import grpc
 from nnext.conversions.conversion import json_to_value
 
 point_id = grpc.PointId(num=1)
