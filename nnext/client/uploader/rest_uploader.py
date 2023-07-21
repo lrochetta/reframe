@@ -1,8 +1,8 @@
 from typing import Iterable, Any
 
-from nnext.http import SyncApis
-from nnext.http.models import PointsBatch, Batch
-from nnext.uploader.uploader import BaseUploader
+from nnext.client.http import SyncApis
+from nnext.client.http import PointsBatch, Batch
+from nnext.client.uploader.uploader import BaseUploader
 
 
 def upload_batch(openapi_client: SyncApis, collection_name: str, batch) -> bool:

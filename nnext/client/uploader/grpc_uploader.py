@@ -5,8 +5,8 @@ from typing import Iterable, Any
 from grpclib.client import Channel
 
 from nnext.conversions.conversion import payload_to_grpc, RestToGrpc
-from nnext.grpc import PointsStub, PointStruct, PointId
-from nnext.uploader.uploader import BaseUploader
+from nnext.client.grpc import PointsStub, PointStruct, PointId
+from nnext.client.uploader.uploader import BaseUploader
 
 
 def iter_over_async(ait, loop):

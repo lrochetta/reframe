@@ -2,12 +2,12 @@ import itertools
 import math
 from abc import ABC
 from itertools import islice, count
-from typing import Optional, Iterable, Any, Callable, Union, List
+from typing import Optional, Iterable, Union, List
 
 import numpy as np
 
 from nnext.conversions.common_types import Record
-from nnext.http.models import ExtendedPointId
+from nnext.client.http.models import ExtendedPointId
 from nnext.parallel_processor import Worker
 
 

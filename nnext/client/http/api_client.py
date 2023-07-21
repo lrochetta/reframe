@@ -4,12 +4,12 @@ from typing import Any, Awaitable, Callable, Dict, Generic, Type, TypeVar, overl
 
 from httpx import AsyncClient, Client, Request, Response
 from pydantic import ValidationError
-from nnext.http.api.cluster_api import AsyncClusterApi, SyncClusterApi
-from nnext.http.api.collections_api import AsyncCollectionsApi, SyncCollectionsApi
-from nnext.http.api.default_api import AsyncDefaultApi, SyncDefaultApi
-from nnext.http.api.points_api import AsyncPointsApi, SyncPointsApi
-from nnext.http.api.snapshots_api import AsyncSnapshotsApi, SyncSnapshotsApi
-from nnext.http.exceptions import ResponseHandlingException, UnexpectedResponse
+from nnext.client.http.api.cluster_api import AsyncClusterApi, SyncClusterApi
+from nnext.client.http.api.collections_api import AsyncCollectionsApi, SyncCollectionsApi
+from nnext.client.http.api.default_api import AsyncDefaultApi, SyncDefaultApi
+from nnext.client.http.api.points_api import AsyncPointsApi, SyncPointsApi
+from nnext.client.http.api.snapshots_api import AsyncSnapshotsApi, SyncSnapshotsApi
+from nnext.client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
 ClientT = TypeVar("ClientT", bound="ApiClient")
 AsyncClientT = TypeVar("AsyncClientT", bound="AsyncApiClient")

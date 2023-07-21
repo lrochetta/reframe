@@ -1,8 +1,8 @@
 import inspect
 
 from pydantic import BaseModel
-from nnext.http.api_client import ApiClient, AsyncApis, SyncApis  # noqa F401
-from nnext.http.models import models
+from nnext.client.http.api_client import ApiClient, AsyncApis, SyncApis  # noqa F401
+from nnext.client.http.models import models
 
 for model in inspect.getmembers(models, inspect.isclass):
     if model[1].__module__ == "nnext.http.models.models":

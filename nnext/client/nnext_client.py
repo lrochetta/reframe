@@ -6,15 +6,14 @@ from typing import Optional, Iterable, List, Union, Tuple, Type
 import numpy as np
 from loguru import logger
 
-from nnext import grpc
+from nnext.client import grpc
 from nnext.conversions import common_types as types
 from nnext.conversions.conversion import RestToGrpc, GrpcToRest
-from nnext.http import SyncApis
-from nnext.http import models as rest
+from nnext.client.http import SyncApis
+from nnext.client.http import models as rest
 from nnext.parallel_processor import ParallelWorkerPool
-from nnext.uploader.grpc_uploader import GrpcBatchUploader
-from nnext.uploader.rest_uploader import RestBatchUploader
-from nnext.uploader.uploader import BaseUploader
+from nnext.client.uploader.grpc_uploader import GrpcBatchUploader
+from nnext.client.uploader.uploader import BaseUploader
 
 
 class NNextClient:

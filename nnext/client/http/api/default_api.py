@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Union
 
 from pydantic.json import ENCODERS_BY_TYPE
 from pydantic.main import BaseModel
-from nnext.http.models import models as m
+from nnext.client.http.models import models as m
 
 SetIntStr = Set[Union[int, str]]
 DictIntStrAny = Dict[Union[int, str], Any]
@@ -146,170 +146,53 @@ def jsonable_encoder(
 
 
 if TYPE_CHECKING:
-    from nnext.http.api_client import ApiClient
+    from nnext.client.http.api_client import ApiClient
 
 
-class _ClusterApi:
+class _DefaultApi:
     def __init__(self, api_client: "Union[ApiClient, AsyncApiClient]"):
         self.api_client = api_client
 
-    def _build_for_cluster_status(
+    def _build_for_telemetry(
         self,
+        anonymize: bool = None,
     ):
         """
-        Get information about the current state and composition of the cluster
+        Collect telemetry data including app info, system info, collections info, cluster info, configs and statistics
         """
-        return self.api_client.request(
-            type_=m.InlineResponse2001,
-            method="GET",
-            url="/cluster",
-        )
-
-    def _build_for_collection_cluster_info(
-        self,
-        collection_name: str,
-    ):
-        """
-        Get cluster information for a collection
-        """
-        path_params = {
-            "collection_name": str(collection_name),
-        }
-
-        return self.api_client.request(
-            type_=m.InlineResponse2006,
-            method="GET",
-            url="/collections/{collection_name}/cluster",
-            path_params=path_params,
-        )
-
-    def _build_for_remove_peer(
-        self,
-        peer_id: int,
-    ):
-        """
-        Tries to remove peer from the cluster. Will return an error if peer has shards on it.
-        """
-        path_params = {
-            "peer_id": str(peer_id),
-        }
-
-        return self.api_client.request(
-            type_=m.InlineResponse2002,
-            method="DELETE",
-            url="/cluster/peer/{peer_id}",
-            path_params=path_params,
-        )
-
-    def _build_for_update_collection_cluster(
-        self,
-        collection_name: str,
-        timeout: int = None,
-        cluster_operations: m.ClusterOperations = None,
-    ):
-        path_params = {
-            "collection_name": str(collection_name),
-        }
-
         query_params = {}
-        if timeout is not None:
-            query_params["timeout"] = str(timeout)
-
-        body = jsonable_encoder(cluster_operations)
+        if anonymize is not None:
+            query_params["anonymize"] = str(anonymize).lower()
 
         return self.api_client.request(
-            type_=m.InlineResponse2002,
-            method="POST",
-            url="/collections/{collection_name}/cluster",
-            path_params=path_params,
+            type_=m.InlineResponse200,
+            method="GET",
+            url="/telemetry",
             params=query_params,
-            json=body,
         )
 
 
-class AsyncClusterApi(_ClusterApi):
-    async def cluster_status(
+class AsyncDefaultApi(_DefaultApi):
+    async def telemetry(
         self,
-    ) -> m.InlineResponse2001:
+        anonymize: bool = None,
+    ) -> m.InlineResponse200:
         """
-        Get information about the current state and composition of the cluster
+        Collect telemetry data including app info, system info, collections info, cluster info, configs and statistics
         """
-        return await self._build_for_cluster_status()
-
-    async def collection_cluster_info(
-        self,
-        collection_name: str,
-    ) -> m.InlineResponse2006:
-        """
-        Get cluster information for a collection
-        """
-        return await self._build_for_collection_cluster_info(
-            collection_name=collection_name,
-        )
-
-    async def remove_peer(
-        self,
-        peer_id: int,
-    ) -> m.InlineResponse2002:
-        """
-        Tries to remove peer from the cluster. Will return an error if peer has shards on it.
-        """
-        return await self._build_for_remove_peer(
-            peer_id=peer_id,
-        )
-
-    async def update_collection_cluster(
-        self,
-        collection_name: str,
-        timeout: int = None,
-        cluster_operations: m.ClusterOperations = None,
-    ) -> m.InlineResponse2002:
-        return await self._build_for_update_collection_cluster(
-            collection_name=collection_name,
-            timeout=timeout,
-            cluster_operations=cluster_operations,
+        return await self._build_for_telemetry(
+            anonymize=anonymize,
         )
 
 
-class SyncClusterApi(_ClusterApi):
-    def cluster_status(
+class SyncDefaultApi(_DefaultApi):
+    def telemetry(
         self,
-    ) -> m.InlineResponse2001:
+        anonymize: bool = None,
+    ) -> m.InlineResponse200:
         """
-        Get information about the current state and composition of the cluster
+        Collect telemetry data including app info, system info, collections info, cluster info, configs and statistics
         """
-        return self._build_for_cluster_status()
-
-    def collection_cluster_info(
-        self,
-        collection_name: str,
-    ) -> m.InlineResponse2006:
-        """
-        Get cluster information for a collection
-        """
-        return self._build_for_collection_cluster_info(
-            collection_name=collection_name,
-        )
-
-    def remove_peer(
-        self,
-        peer_id: int,
-    ) -> m.InlineResponse2002:
-        """
-        Tries to remove peer from the cluster. Will return an error if peer has shards on it.
-        """
-        return self._build_for_remove_peer(
-            peer_id=peer_id,
-        )
-
-    def update_collection_cluster(
-        self,
-        collection_name: str,
-        timeout: int = None,
-        cluster_operations: m.ClusterOperations = None,
-    ) -> m.InlineResponse2002:
-        return self._build_for_update_collection_cluster(
-            collection_name=collection_name,
-            timeout=timeout,
-            cluster_operations=cluster_operations,
+        return self._build_for_telemetry(
+            anonymize=anonymize,
         )

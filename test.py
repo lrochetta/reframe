@@ -1,5 +1,5 @@
 from nnext import NNextClient
-from nnext.http.models import Distance
+from nnext.client.http import Distance
 
 nnclient = NNextClient(host="localhost", port=6040)
 

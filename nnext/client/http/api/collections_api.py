@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set, Tuple, Union
 
 from pydantic.json import ENCODERS_BY_TYPE
 from pydantic.main import BaseModel
-from nnext.http.models import models as m
+from nnext.client.http.models import models as m
 
 SetIntStr = Set[Union[int, str]]
 DictIntStrAny = Dict[Union[int, str], Any]
@@ -146,7 +146,7 @@ def jsonable_encoder(
 
 
 if TYPE_CHECKING:
-    from nnext.http.api_client import ApiClient
+    from nnext.client.http.api_client import ApiClient
 
 
 class _CollectionsApi:

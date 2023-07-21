@@ -3,9 +3,9 @@ from typing import Dict, Any
 
 import betterproto
 
-from nnext import grpc
-from nnext.http.models import models as rest
-from nnext.grpc import Value, ListValue, Struct, NullValue
+from nnext.client import grpc
+from nnext.client.http.models import models as rest
+from nnext.client.grpc import Value, ListValue, Struct, NullValue
 
 
 def json_to_value(payload: Any) -> Value:
