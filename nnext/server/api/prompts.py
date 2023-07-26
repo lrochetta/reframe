@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/prompts", name="Create a prompt", description="Create a new prompt")
-async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
+async def create_prompt(body: Prompt):
     """Create prompt endpoint"""
     decoded = decodeJWT(token)
 

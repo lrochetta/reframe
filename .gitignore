@@ -6,3 +6,7 @@ __pycache__
 htmlcov
 *.iml
 dist
+
+
+.env
+.env.*

@@ -42,8 +42,7 @@ async def create_agent_tool(body: AgentTool, token=Depends(JWTBearer())):
 )
 async def read_agent_tools(
     filters: dict = Depends(parse_filter_params),
-    expand: bool = False,
-    token=Depends(JWTBearer()),
+    expand: bool = False
 ):
     """List agent tools endpoint"""
     agent_tools = prisma.agenttool.find_many(where=filters, include={"tool": expand})
