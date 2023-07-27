@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "aigent_nnext"
-version = "0.0.44"
+name = "aigent"
+version = "0.0.01"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
 authors = ["NNext Team <team@nnext.ai>"]
 packages = [
