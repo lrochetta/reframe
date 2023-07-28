@@ -49,7 +49,8 @@ def with_cache(prefix, *args, **kwargs):
                         _result = json.loads(result_dict['result'])
                         return _result
                     except Exception as e:
-                        return result_dict['result']
+                        pass
+                        # return result_dict['result']
 
             if True:
                 logger.debug('No cache found or skipping cache - running function')

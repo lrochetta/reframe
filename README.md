@@ -1,13 +1,13 @@
-# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="NNext Python Client"></a>
+# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="Aigent"></a>
 
 ## About
 
-The NNext Python Client.
 
-NNext is a
-
-* ⚡ blazingly fast
-* 🔍 nearest-neighbors vector search engine
+Aigent is an experiomental agent framework powered by GPT-4 that operates on dataframes.
+Powered by the remarkable GPT-4, this program ingeniously links together thoughts from
+Large Language Models (LLMs) to autonomously accomplish your desired objectives.
+As a groundbreaking example of GPT-4 operating entirely independently, Auto-GPT pushes
+the frontiers of AI's potential to new and awe-inspiring heights.
 
 <a href="https://twitter.com/intent/follow?screen_name=nnextai"><img src="https://img.shields.io/badge/Follow-nnextai-blue.svg?style=flat&logo=twitter"></a>
 
@@ -15,7 +15,12 @@ NNext is a
 
 ## Installation
 
-To install the pynnext client, activate a virtual environment, and install via pip:
+By far the easiest way to install the Aigent server is to use docker.
+
+```sql
+wget https://raw.githubusercontent.com/nnextai/aigent/main/docker-compose.yml
+docker-compose up -d
+```
 
 ### Supported Python Versions
 
@@ -40,6 +45,14 @@ virtualenv <your-env>
 <your-env>\Scripts\activate
 <your-env>\Scripts\pip.exe install nnext
 ```
+
+# Features
+* 🌐 Internet access for searches and information gathering
+* 📥 Long-term and short-term memory management 
+* 🧠 GPT-4 & Anthropic instances for text generation 
+* 🔗 Access to popular websites and platforms 
+* 🗃️ File storage and summarization with GPT-3.5 
+* 🔌 Extensibility with Plugins
 
 ## Quick Start
 
