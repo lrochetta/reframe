@@ -18,7 +18,7 @@ the frontiers of AI's potential to new and awe-inspiring heights.
 By far the easiest way to install the Aigent server is to use docker.
 
 ```sql
-wget https://raw.githubusercontent.com/nnextai/aigent/main/docker-compose.yml
+wget https://raw.githubusercontent.com/nnextai/aigent/main/docker-compose.yaml
 docker-compose up -d
 ```
 
