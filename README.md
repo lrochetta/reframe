@@ -27,6 +27,16 @@ docker-compose up -d
 pip install aigent
 ```
 
+## Aigent strives to be
+
+* 🥽 Transparent - through logging, and metrics that create visibility into the inner operations.
+* 🤸🏾 Flexible - AI Agents and tools are independent of each other, allowing you to create workflows easily.
+* 🧩 Composable. Aigents are simply executable python functions and classes with a well defined interface. You can easily construct sophisticated agents from basic building blocks. These building blocks can be obtained from our ecosystem or you can develop custom ones that are specific to your organization.
+* 🛹 Incrementally adoptable - By using existing technologies such as Docker, Kubernetes and Celery Aigent enables you to seamlessly adopt it with your organization. From simple ZeroShot agents to sophisticated multi-step AI agents each component can be integrated into your existing workflows.
+* 🔨 Reusable - once a tool is running, it can be utilized by various agents, thereby reducing operational overhead, increasing throughput and making tools easy to reason about.
+* 🏎️ Fast by taking advantage of data parallelism and prompt sequencing in a manner increases efficiency and reduces the overall number of expensive API calls made to LLM endpoints.
+* 🏟️ Rich ecosystem that enables your to pick and choose which tools and agents to deploy. Through contributions from open source developers, we are making great progress to develop a robust ecosystem of tools so that you always have a tool for the job.
+
 # Features
 * 🌐 Internet access for searches and information gathering
 * 📥 Long-term and short-term memory management 
@@ -37,4 +47,4 @@ pip install aigent
 
 ## Documentation
 
-More documentation is available here [https://nnext.ai/docs/aigent](https://nnext.ai/docs/aigent).:
+More documentation is available here [https://nnext.ai/aigent/docs](https://nnext.ai/aigent/docs).:
