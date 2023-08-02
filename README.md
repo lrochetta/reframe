@@ -22,6 +22,8 @@ wget https://raw.githubusercontent.com/nnextai/aigent/main/docker-compose.yaml
 docker-compose up -d
 ```
 
+https://discord.gg/KkFzHRTF5K
+
 ### Install aigent client
 ```shell
 pip install aigent
