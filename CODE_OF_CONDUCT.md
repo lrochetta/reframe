@@ -61,7 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
 
-<a href="mailto:sup@aigent.sh?subject=Aigent%20»%20Contributor%20Code%20of%20Conduct%20Enforcement"><img src="https://img.shields.io/badge/email-%23DD0031.svg?&style=for-the-badge&logo=email&logoColor=white"/></a>
+<a href="mailto:sup@aigent.sh?subject=Aigent%20»%20Contributor%20Code%20of%20Conduct%20Enforcement"><img src="https://img.shields.io/badge/email-%23DD0031.svg?&style=for-the-badge&logo=gmail&logoColor=white"/></a>
 
 [sup@aigent.sh](mailto:sup@aigent.sh?subject=Aigent%20»%20Contributor%20Code%20of%20Conduct%20Enforcement)
 
