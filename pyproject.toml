@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "aigent"
+name = "nnext"
 version = "0.0.1"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
 authors = ["NNext Team <pypi@nnext.ai>"]

@@ -9,9 +9,8 @@ from pprint import pprint
 
 # External Libraries
 from playwright.async_api import async_playwright
-import redis
 from loguru import logger
-from nnext.lib.core.main import Agent, Tool
+from nnext.lib.core.main import Tool
 
 # Internal Libraries
 None

@@ -13,7 +13,6 @@ import redis
 from loguru import logger
 
 # Internal Libraries
-from nnext.lib.core.main import Agent, Tool
 from nnext.lib.models.llms.main import OpenAI
 
 from dotenv import load_dotenv
