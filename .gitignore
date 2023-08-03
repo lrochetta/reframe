@@ -7,7 +7,9 @@ htmlcov
 *.iml
 .pypirc
 dist
+scratch
 .DS_Store
 
 .env
 .env.*
+!.env.example
