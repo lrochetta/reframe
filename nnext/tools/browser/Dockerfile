@@ -10,7 +10,7 @@ COPY .kube /root/.kube
 
 ENV APP_HOME /app
 WORKDIR $APP_HOME
-COPY .. ./
+COPY ../../agents ./
 
 EXPOSE 8000
 
