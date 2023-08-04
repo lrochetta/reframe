@@ -8,7 +8,6 @@ import asyncio
 import inspect
 import os
 import hashlib
-import jinja2
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 import json
@@ -18,24 +17,20 @@ from pprint import pprint, pformat
 # External Libraries
 import psycopg
 import redis
+from os import environ as env
 import tiktoken
+import jinja2
 from loguru import logger
 from uuid6 import uuid7
 from psycopg import sql
 import openai
 
 # Internal Libraries
-
-# Global Variables
 from nnext.lib.core.decor import openai_chat
 
+# Global Variables
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
 TASK_EXPIRATION_DURATION = 60 * 60 * 24 * 2 # 48 Hours
-
-PLAT_DB_HOST = 'nnextai-plat.coidzm0p67y1.us-east-2.rds.amazonaws.com'
-PLAT_DB_PASS = 'vifrAdREchOD0O9us6d5'
-PLAT_DB_USER = 'postgres'
-PLAT_DB_NAME = 'platdb_b6ef_mango_tree'
 
 REDIS_STREAM_HOST=os.environ.get('REDIS_STREAM_HOST', "localhost")
 REDIS_CACHE_HOST=os.environ.get('REDIS_CACHE_HOST', "localhost")
@@ -152,6 +147,7 @@ class CallableDFColumnTool(_AbstractClass, Callable):
                     cache_val = red_cache.get(cache_key)
 
                     if cache_val:
+                        print(cache_val)
                         logger.debug('Found element in cache - returning cached results')
                         try:
                             result_dict = json.loads(cache_val)
@@ -250,10 +246,15 @@ class Agent(object):
 
     def __del__(self):
         logger.info(f"Deconstructed NNextAgent [name={self.name}]")
-        self.new_event_loop = asyncio.new_event_loop()
-        self.new_event_loop.run_until_complete(self.connect_to_db())
+        self.new_event_loop.stop()
+        self.disconnect_db()
 
     async def connect_to_db(self):
+        PLAT_DB_HOST = env.get('PLAT_DB_HOST', 'localhost')
+        PLAT_DB_USER = env.get('PLAT_DB_USER', 'postgres')
+        PLAT_DB_PASS = env.get('PLAT_DB_PASS')
+        PLAT_DB_NAME = env.get('PLAT_DB_NAME')
+
         self.data_db_conn = await psycopg.AsyncConnection.connect(
             host=PLAT_DB_HOST,
             user=PLAT_DB_USER,
@@ -263,7 +264,7 @@ class Agent(object):
         )
 
         self.data_db_cursor = self.data_db_conn.cursor()
-        logger.debug("Connected to DB")
+        logger.debug("Connected to DBx")
 
     async def disconnect_db(self):
         await self.data_db_conn.close()
@@ -312,9 +313,9 @@ class Agent(object):
             # Iterate over the message batch for that stream key.
             for _j in stream_messages:
                 message_id, message_data = _j
-                logger.info(f"{[stream_key, message_id, message_data]}")
+                # pprint(message_data)
+                logger.debug(f"stream_key={stream_key}, message_id={message_id} message_data={pformat(message_data)}")
                 tool_name = self.tool_graph['tools']["browser"].get('name')
-                logger.info(tool_name)
 
                 tool_stream_key = f"nnext::instream::tool->{tool_name}"
 
@@ -323,6 +324,8 @@ class Agent(object):
                 output_column = message_data['output_column']
                 table_name = message_data['table_name']
                 correlation_id = payload.get('_id')
+
+                logger.info(f"Running tool->{tool_name} with payload->{payload}")
 
                 red_stream.xadd(tool_stream_key, {
                     'payload': json.dumps(payload),
@@ -372,7 +375,7 @@ class Agent(object):
                 correlation_id = message_data.get('correlation_id')
                 payload = message_data.get('payload')
 
-                logger.info(correlation_id, pformat(payload))
+                logger.info(f"{correlation_id}, {pformat(payload)}")
 
                 result_key = f"nnext::memory::agent->{self.name}::tool->{tool_name}[0]::elem->{correlation_id}"
 
@@ -423,15 +426,15 @@ class Agent(object):
                 tokenized_text = enc.decode(tokenized)
 
                 chat_messages = [
-                    {"role": "system", "content": "Given the following content extracted from a webpage"},
+                    {"role": "system", "content": "Given the following content. Return for the information asked without generating supperfluous text. Answer with as few words as possible."},
                     {"role": "user", "content": tokenized_text},
                     {"role": "assistant", "content": "Thanks. I will now use this information to generate a prompt."},
                     {"role": "user", "content": prompt_text}
                 ]
 
                 # Call OpenAI API.
-                response = await openai_chat(chat_messages)
-                # response = await openai_chat(chat_messages, read_cache=False, write_cache=True)
+                # response = await openai_chat(chat_messages)
+                response = await openai_chat(chat_messages, read_cache=False, write_cache=True)
 
                 red_stream.delete(key)
 
@@ -459,10 +462,8 @@ class Agent(object):
                     sql.Identifier(output_column)
                 )
 
-                print(_sql_stmt.as_string(self.data_db_cursor))
-
                 try:
-
+                    logger.info(f"Inserting into table {table_name}. {output_column}⇨ {pformat(response)}")
                     await self.data_db_cursor.execute(_sql_stmt, {
                         "_id": correlation_id,
                         "result": response

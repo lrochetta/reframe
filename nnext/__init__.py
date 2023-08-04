@@ -1,6 +1,6 @@
 __version__ = '0.1.0'
 
-from aigent.client import NNextClient
+from nnext.client import NNextClient
 
 
 def _in_ipython() -> bool:

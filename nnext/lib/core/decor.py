@@ -10,9 +10,12 @@ from os import environ as env
 from datetime import datetime, timezone
 
 # External Libraries
+from time import sleep
+
 import redis
 from loguru import logger
 import openai
+from pprint import pformat
 
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
 openai.api_key = env.get('OPENAI_API_KEY')
@@ -89,9 +92,22 @@ def with_cache(prefix, *args, **kwargs):
 
 @with_cache(prefix="nnext::fn-cache::openai_chat", ex=CACHE_EXPIRATION_DURATION)
 async def openai_chat(messages, *args, **kwargs):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
+    num_retries = kwargs.pop('num_retries', 3)
+    for i in range(num_retries):
+        try:
+            logger.debug(f"Calling openai_chat with {pformat(messages)}")
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
+            return response.to_dict()['choices'][0]["message"]["content"]
+        except openai.error.RateLimitError as openai_rate_limit_error:
+            if i == num_retries - 1:
+                raise openai_rate_limit_error
+            retry_in = 60 * (i+1)
+            logger.warning(f"Rate limit error: {openai_rate_limit_error}. Retrying in {retry_in} seconds")
+            sleep(retry_in)
+        except Exception as e:
+            logger.exception(e)
+            return None
 
-    return response.to_dict()['choices'][0]["message"]["content"]

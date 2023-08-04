@@ -23,7 +23,7 @@ from nnext.server.lib.models.agent import Agent, PredictAgent
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()
-
+from os import environ as env
 import os
 import redis
 REDIS_STREAM_HOST=os.environ.get('REDIS_STREAM_HOST', "localhost")
@@ -125,133 +125,6 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
         )
 
 
-# @router.post(
-#     "/agent/{agentId}/rxun",
-#     name="Prompt agent",
-#     description="Invoke a specific agent",
-# )
-# async def run_agent(
-#     agentId: str,
-#     body: dict,
-#     background_tasks: BackgroundTasks
-# ):
-#
-#     """Agent detail endpoint"""
-#     sql_query_text = body.get("sql_query_text")
-#     table = body.get("table")
-#     output_column = body.get("output_column")
-#     prompt = body.get("prompt")
-#     pprint( prompt)
-#
-#     try:
-#         print("Creating job...")
-#         job = prisma.job.create(
-#             {
-#                 "id": str(uuid7()),
-#             }
-#         )
-#
-#         print(job)
-#
-#     except Exception as e:
-#         logging.exception(e)
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=e,
-#         )
-#
-#     for prompt_obj in prompt:
-#         pprint(prompt_obj)
-#         assert prompt_obj['type'] == 'paragraph'
-#         filt_mention = list(filter(lambda x: 'type' in x and x['type'] == 'mention', prompt_obj['children']))
-#
-#         # If there is no column mentioned, skip.
-#         if len(filt_mention) == 0:
-#             continue
-#
-#         column_name = filt_mention[0]['column']
-#
-#     if column_name is None:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Column name cannot be empty.",
-#         )
-#
-#     # PLAT DATABASE.
-#     # For client data that displays on the platform.
-#     PLAT_DB_HOST = 'nnextai-plat.coidzm0p67y1.us-east-2.rds.amazonaws.com'
-#     PLAT_DB_PASS = 'vifrAdREchOD0O9us6d5'
-#     PLAT_DB_USER = 'postgres'
-#     print("Connecting to plat db", sql_query_text)
-#
-#     PLAT_DB_URL = f"postgresql://{PLAT_DB_USER}:{PLAT_DB_PASS}@{PLAT_DB_HOST}/platdb_b6ef_mango_tree"
-#
-#     print(PLAT_DB_URL)
-#
-#     _sql_obj= sql.SQL(sql_query_text)
-#
-#     async with await psycopg.AsyncConnection.connect(PLAT_DB_URL, autocommit=True) as plat_db_conn:
-#         async with plat_db_conn.cursor() as acur:
-#             print("running query", _sql_obj)
-#             await acur.execute(_sql_obj)
-#             print("Done executing")
-#             await acur.fetchone()   # fetchone method seems to work - fetchall doesn't. It's not clear why fetchone works here while we want to fetch all the records.
-#
-#             # Really, this batch queue should be executed by the nnext framework.
-#             async for record in acur:
-#                 print(record)
-#
-#                 stream_key = "browser-b51c"
-#                 stream_message = {
-#                     'ts': time(),
-#                     'payload': json.dumps({
-#                         "_id": str(record[0]),
-#                         "url": record[1],
-#                         "prompt": prompt
-#                     }),
-#                     'job_id': str(job.id),
-#                     "table": table,
-#                     "output_col": output_column,
-#                 }
-#                 red_stream.xadd(stream_key, stream_message)
-#                 print(f"Added elem to stream {stream_key}. Elem: {stream_message}")
-#
-#     print("YYY", column_name)
-#
-#     agent = prisma.agent.find_unique(
-#         where={"id": agentId},
-#         include={"prompt": True},
-#     )
-#
-#     return {"status": "success"}
-#
-#     agent_base = AgentBase(agent=agent)
-#     agent_strategy = AgentFactory.create_agent(agent_base)
-#     agent_executor = agent_strategy.get_agent()
-#     result = agent_executor(agent_base.process_payload(payload=input))
-#     output = result.get("output") or result.get("result")
-#     background_tasks.add_task(
-#         agent_base.create_agent_memory,
-#         agentId,
-#         "HUMAN",
-#         json.dumps(input.get("input")),
-#     )
-#     background_tasks.add_task(
-#         agent_base.create_agent_memory, agentId, "AI", output
-#     )
-#
-#     if config("NNEXT_TRACING"):
-#         trace = agent_base._format_trace(trace=result)
-#         background_tasks.add_task(agent_base.save_intermediate_steps, trace)
-#
-#         return {"success": True, "data": output, "trace": json.loads(trace)}
-#
-#     raise HTTPException(
-#         status_code=status.HTTP_404_NOT_FOUND,
-#         detail=f"Agent with id: {agentId} not found",
-#     )
-
-
 @router.post(
     "/agent/react/run",
     name="Prompt agent",
@@ -288,12 +161,14 @@ async def run_react_agent(
 
     # PLAT DATABASE.
     # For client data that displays on the platform.
-    PLAT_DB_HOST = 'nnextai-plat.coidzm0p67y1.us-east-2.rds.amazonaws.com'
-    PLAT_DB_PASS = 'vifrAdREchOD0O9us6d5'
-    PLAT_DB_USER = 'postgres'
-    print("Connecting to plat db", sql_query_text)
-
-    PLAT_DB_URL = f"postgresql://{PLAT_DB_USER}:{PLAT_DB_PASS}@{PLAT_DB_HOST}/platdb_b6ef_mango_tree"
+    PLAT_DB_HOST = env.get('PLAT_DB_HOST', 'localhost')
+    PLAT_DB_USER = env.get('PLAT_DB_USER', 'postgres')
+    PLAT_DB_PASS = env.get('PLAT_DB_PASS')
+    PLAT_DB_NAME = env.get('PLAT_DB_NAME')
+    print("Connecting to plat db", PLAT_DB_HOST)
+    print("Connecting to plat db", PLAT_DB_PASS)
+    print("Connecting to plat db", PLAT_DB_USER)
+    print("Connecting to plat db", PLAT_DB_NAME)
 
     _sql_obj= sql.SQL(sql_query_text)
 
@@ -307,19 +182,20 @@ async def run_react_agent(
             else:
                 prompt_text += child['text']
 
-    print("Prompt text:", prompt_text)
+    logger.debug(f"Prompt text: '{prompt_text}'")
 
     async with await psycopg.AsyncConnection.connect(
         host=PLAT_DB_HOST,
         user=PLAT_DB_USER,
         password=PLAT_DB_PASS,
-        dbname='platdb_b6ef_mango_tree',
+        dbname=PLAT_DB_NAME,
         autocommit=True
     ) as plat_db_conn:
+        print("Connected to DBx", plat_db_conn)
         async with plat_db_conn.cursor() as acur:
             logger.info(f"Connected to DB. Running query {_sql_obj}")
             await acur.execute(_sql_obj)
-            # Really, this batch queue should be executed by the nnext framework.
+
             async for record in acur:
                 print(record)
 
@@ -339,12 +215,7 @@ async def run_react_agent(
                 red_stream.xadd(stream_key, stream_message)
                 logger.debug(f"Added elem to stream {stream_key}. Elem: {stream_message}")
 
-    # agent = prisma.agent.find_unique(
-    #     where={"id": agentId},
-    #     include={"prompt": True},
-    # )
-
-    return {"status": "successx"}
+    return {"status": "success"}
 
     agent_base = AgentBase(agent=agent)
     agent_strategy = AgentFactory.create_agent(agent_base)
