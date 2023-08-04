@@ -14,6 +14,7 @@ from loguru import logger
 
 # Internal Libraries
 from nnext.lib.models.llms.main import OpenAI
+from nnext.lib.core.main import Agent
 
 from dotenv import load_dotenv
 

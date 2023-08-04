@@ -6,14 +6,15 @@ __copyright__ = "Copyright © 2023 NNext, Co."
 # Standard Libraries
 import os
 from pprint import pprint
+from urllib.parse import urljoin, urlencode, urlparse, urlunparse
 
 # External Libraries
 from playwright.async_api import async_playwright
 from loguru import logger
-from nnext.lib.core.main import Tool
+import validators
 
 # Internal Libraries
-None
+from nnext.lib.core.main import Tool
 
 # Global Variables
 BRIGHT_DATA_KEY = os.environ.get("BRIGHT_DATA_KEY")
@@ -30,10 +31,21 @@ async def visit_url(url, *args, **kwargs):
         logger.debug('connected  to browser');
         page = await browser.new_page()
 
-        logger.info(f'visiting {url}')
         try:
-            await page.goto(url, timeout=120000)
+            logger.info(f'Attempting to visit: {url}')
+            validators.url(url)
+
+            # Sometimes the URL is not fully qualified. We need to fix that
+            # by adding the scheme.
+            url_parsed = urlparse(url)
+            if not url_parsed.scheme:
+                logger.warning(f'URL {url} does not have a scheme. Assuming https')
+                url = f"https://{url}"
+                url_parsed = urlparse(url)
+
+            await page.goto(urlunparse(url_parsed), timeout=120000)
         except Exception as e:
+            logger.exception(e)
             return None
 
         await page.screenshot(path=f"{id}-screenshot.png")
