@@ -26,7 +26,7 @@ from psycopg import sql
 import openai
 
 # Internal Libraries
-from nnext.lib.core.decor import openai_chat
+from nnext.lib.models.chat import openai_chat
 
 # Global Variables
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
@@ -505,19 +505,3 @@ class Agent(object):
             logger.critical(f"Exception: {e}")
         finally:
             self.new_event_loop.close()
-
-class Tool(object):
-    def __init__(self, name, invoke_commands, *args, **kwargs):
-        self.name = name
-        self.invoke_commands = invoke_commands
-        logger.info(f"Initializing Tool: [name='{name}' invoke_commands='{invoke_commands}']")
-
-    def __call__(self, func):
-        logger.info(f"Running Tool event loop for [name={self.name}]", func)
-        c = CallableDFColumnTool(func, name=self.name, invoke_commands=self.invoke_commands)
-
-        return c
-
-    def listen(self):
-        logger.info("Listening to NNextApp", self.name)
-        pass

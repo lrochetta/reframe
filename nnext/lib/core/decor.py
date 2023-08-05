@@ -32,7 +32,7 @@ def with_cache(prefix, *args, **kwargs):
 
         async def wrapped(*args, **kwargs):
             # logger.info(f"Wrapped NNextApp")
-            # logger.info(f"{args, kwargs}")
+            logger.info(f"{args, kwargs}")
             arg_str = f"{args, kwargs}"
 
             cache_key = hashlib.sha256(str(arg_str).encode('utf-8')).hexdigest()
@@ -43,7 +43,6 @@ def with_cache(prefix, *args, **kwargs):
 
             if read_cache:
                 cache_val = red_cache.get(cache_key)
-                # print(f"cache-> {cache_key}>>{cache_val[:300] if cache_val else None}")
 
                 if cache_val:
                     logger.debug('Found element in cache - returning cached results', cache_val)
@@ -89,25 +88,4 @@ def with_cache(prefix, *args, **kwargs):
         return wrapped
 
     return wrapper
-
-@with_cache(prefix="nnext::fn-cache::openai_chat", ex=CACHE_EXPIRATION_DURATION)
-async def openai_chat(messages, *args, **kwargs):
-    num_retries = kwargs.pop('num_retries', 3)
-    for i in range(num_retries):
-        try:
-            logger.debug(f"Calling openai_chat with {pformat(messages)}")
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages
-            )
-            return response.to_dict()['choices'][0]["message"]["content"]
-        except openai.error.RateLimitError as openai_rate_limit_error:
-            if i == num_retries - 1:
-                raise openai_rate_limit_error
-            retry_in = 60 * (i+1)
-            logger.warning(f"Rate limit error: {openai_rate_limit_error}. Retrying in {retry_in} seconds")
-            sleep(retry_in)
-        except Exception as e:
-            logger.exception(e)
-            return None
 
