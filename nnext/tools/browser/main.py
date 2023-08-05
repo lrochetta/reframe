@@ -14,15 +14,16 @@ from loguru import logger
 import validators
 
 # Internal Libraries
-from nnext.lib.core.main import Tool
+from nnext.lib.core import ToolDecor
 
 # Global Variables
 BRIGHT_DATA_KEY = os.environ.get("BRIGHT_DATA_KEY")
 browser_url = f'wss://{BRIGHT_DATA_KEY}@brd.superproxy.io:9222'
 
-@Tool(
+@ToolDecor(
     name="browser",
-    invoke_commands=["browse", "visit", "open"]
+    invoke_commands=["browse", "visit", "open"],
+    with_cache=True
 )
 async def visit_url(url, *args, **kwargs):
     async with async_playwright() as pw:
