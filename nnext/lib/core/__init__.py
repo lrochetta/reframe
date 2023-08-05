@@ -1,1 +1,1 @@
-from .tool import ToolDecor
+from .tool import AsyncTool

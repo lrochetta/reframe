@@ -27,7 +27,7 @@ red_cache = redis.StrictRedis(
     password=REDIS_PASSWORD, decode_responses=True)
 # ------------------------------
 
-@with_cache(prefix="nnext::fn-cache::agent-run::openai_chat", ex=CACHE_EXPIRATION_DURATION)
+@with_cache(prefix="nnext::fn-cache::agent-run::fn->openai_chat", ex=CACHE_EXPIRATION_DURATION)
 async def openai_chat(messages, *args, **kwargs):
     num_retries = kwargs.pop('num_retries', 3)
     for i in range(num_retries):
