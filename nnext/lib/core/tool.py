@@ -39,6 +39,9 @@ red_cache = redis.StrictRedis(
 def _hasattr(C, attr):
     return any(attr in B.__dict__ for B in C.__mro__)
 
+# Class to be inherited by all tools.
+# AsyncTool is an abstract class that defines the interface for all tools.
+# All tools must implement the async_exec method.
 class AsyncTool(object):
     def __init__(self, name, invoke_commands, *args, **kwargs):
         self.name = name
@@ -80,17 +83,13 @@ class AsyncTool(object):
 
         return last_processed_message_id
 
-    def __call__(self, func):
-        logger.info(f"Running Tool event loop for [name={self.name}]", func)
-        c = CallableDFColumnTool(func, name=self.name, invoke_commands=self.invoke_commands)
-
-        return c
-
     @abstractmethod
     def async_exec(self, *args, **kwargs):
         raise NotImplementedError("Must override function async_exec")
 
-    async def wait_func_inner(self, *args, **kwargs):
+    # Receive messages from the stream and execute the async_exec function.
+    # This function is called in an infinite loop by the run function.
+    async def _inner(self, *args, **kwargs):
         last_processed_message_id = self.get_last_processed_message_id()
         l = red_stream.xread(count=3, streams={self.instream_key: last_processed_message_id}, block=1000)
 
@@ -106,7 +105,7 @@ class AsyncTool(object):
                 arg_names = inspect.getfullargspec(self.async_exec)[0]
                 kwarg_names = inspect.getfullargspec(self.async_exec)[2]
 
-
+                # Extract the function arguments from the payload
                 # Todo: Add support for kwargs
                 args = [payload.get(arg_name) for arg_name in arg_names if arg_name not in ['self']]
                 args_dict = {arg_name: payload.get(arg_name, None) for arg_name in arg_names if arg_name not in ['self']}
@@ -126,6 +125,7 @@ class AsyncTool(object):
                     if cache_val:
                         logger.opt(ansi=True).debug(f'Found element in cache - returning cached results. <green>{cache_val[:250]}...</green>')
                         try:
+                            # Attempt to load the cache value as a json.
                             result_dict = json.loads(cache_val)
                             found_in_cache = True
                         except Exception as e:
@@ -133,6 +133,7 @@ class AsyncTool(object):
                     else:
                         logger.debug('No cache found or skipping cache - running agent')
 
+                # Not found in cache or using cache. Run the agent.
                 if not found_in_cache:
                     try:
                         start_time = datetime.now(timezone.utc)
@@ -155,13 +156,14 @@ class AsyncTool(object):
                             "status": "ERROR",
                         }
                     finally:
+                        # Write the result to cache
                         if write_cache:
                             red_cache.set(
                                 cache_key,
                                 json.dumps(result_dict, default=str),
                                 ex=CACHE_EXPIRATION_DURATION
                             )
-
+                # Write the results to the outstream to be picked up by the agent
                 res_stream_key = f"nnext::outstream::agent->{agent}::tool->{self.tool_name}"
                 red_stream.xadd(res_stream_key, {
                     'payload': json.dumps(result_dict, default=str),
@@ -172,15 +174,12 @@ class AsyncTool(object):
 
         return None
 
-    async def wait_func(self, *args, **kwargs):
-        while True:
-            await self.wait_func_inner()
-
     def run(self, *args, **kwargs):
         logger.debug("Running CallableDFColumnTool", *args, **kwargs)
         self.new_event_loop = asyncio.new_event_loop()
         try:
-            self.new_event_loop.run_until_complete(self.wait_func())
+            while True:
+                self.new_event_loop.run_until_complete(self._inner())
         except redis.exceptions.ConnectionError as redis_connection_error:
             pass
             logger.critical(f"Redis connection error: {redis_connection_error}. Is Redis running and variable 'REDIS_STREAM_HOST' set?")
