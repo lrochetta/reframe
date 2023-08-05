@@ -39,17 +39,13 @@ red_cache = redis.StrictRedis(
 def _hasattr(C, attr):
     return any(attr in B.__dict__ for B in C.__mro__)
 
-class _AbstractClass(metaclass=ABCMeta):
-    __required_attributes__ = frozenset()
-
-    @abstractmethod
-    def run(self):
-        pass
-
-class CallableDFColumnTool(_AbstractClass, Callable):
-    def __init__(self, func, name, *args, **kwargs):
-        self.func = func
+class AsyncTool(object):
+    def __init__(self, name, invoke_commands, *args, **kwargs):
+        self.name = name
         self.tool_name = name
+        self.invoke_commands = invoke_commands
+        self.with_cache = kwargs.get('with_cache', True)
+
         self.instream_key = f"nnext::instream::tool->{self.tool_name}"
         self.last_processed_stream_key = f"{self.instream_key}::processed_pointer"
         self.last_processed_message_id = red_stream.get(self.last_processed_stream_key)
@@ -84,10 +80,15 @@ class CallableDFColumnTool(_AbstractClass, Callable):
 
         return last_processed_message_id
 
-    @with_cache(prefix="nnext::fn-cache::agent-run::openai_chat", ex=CACHE_EXPIRATION_DURATION)
-    async def run_func(self, *args, **kwargs):
-        cache_key = f"nnext::fn-cache::agent-run::tool->{self.tool_name}"
-        return await self.func(*args)
+    def __call__(self, func):
+        logger.info(f"Running Tool event loop for [name={self.name}]", func)
+        c = CallableDFColumnTool(func, name=self.name, invoke_commands=self.invoke_commands)
+
+        return c
+
+    @abstractmethod
+    def async_exec(self, *args, **kwargs):
+        raise NotImplementedError("Must override function async_exec")
 
     async def wait_func_inner(self, *args, **kwargs):
         last_processed_message_id = self.get_last_processed_message_id()
@@ -102,59 +103,64 @@ class CallableDFColumnTool(_AbstractClass, Callable):
                 payload = json.loads(message_data.get('payload'))
                 agent = message_data.get('agent')
 
-                arg_names = inspect.getfullargspec(self.func)[0]
-                kwarg_names = inspect.getfullargspec(self.func)[2]
+                arg_names = inspect.getfullargspec(self.async_exec)[0]
+                kwarg_names = inspect.getfullargspec(self.async_exec)[2]
 
-                args = [payload.get(arg_name, None) for arg_name in arg_names]
-                args_dict = {arg_name: payload.get(arg_name, None) for arg_name in arg_names}
+
+                # Todo: Add support for kwargs
+                args = [payload.get(arg_name) for arg_name in arg_names if arg_name not in ['self']]
+                args_dict = {arg_name: payload.get(arg_name, None) for arg_name in arg_names if arg_name not in ['self']}
+
+                logger.opt(ansi=True).info(f"Running tool for agent:: <yellow>{agent}</yellow> with args: {args} and kwargs: {kwargs}. payload: {payload} correlation_id: <yellow>{correlation_id}</yellow>")
+                read_cache = True
+                write_cache = True
 
                 arg_dict_str = json.dumps(args_dict, sort_keys=True)
                 arg_dict_hash = hashlib.sha256(arg_dict_str.encode('utf-8')).hexdigest()
-                self.last_instream_key = message_id
+                cache_key = f"nnext::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
 
-                read_cache = True
-                write_cache = True
-                cache_key = f"nnext::cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
-                # read_cache = kwargs.get('read_cache', True)
-                # write_cache = kwargs.get('write_cache', True)
-
+                found_in_cache = False
                 if read_cache:
                     cache_val = red_cache.get(cache_key)
 
                     if cache_val:
-                        print(cache_val)
-                        logger.debug('Found element in cache - returning cached results')
+                        logger.opt(ansi=True).debug(f'Found element in cache - returning cached results. <green>{cache_val[:250]}...</green>')
                         try:
                             result_dict = json.loads(cache_val)
-                        except Exception as e:
-                            print(e)
-                    else:
-                        logger.info('No cache found or skipping cache - running agent')
-
-                        try:
-                            start_time = datetime.now(timezone.utc)
-                            tool_result = await self.func(*args)
-                            end_time = datetime.now(timezone.utc)
-                            result_dict = {
-                                "payload": {"result": tool_result},
-                                "status": "SUCCESS",
-                                "start_time": start_time,
-                                "end_time": end_time,
-                            }
+                            found_in_cache = True
                         except Exception as e:
                             logger.exception(e)
+                    else:
+                        logger.debug('No cache found or skipping cache - running agent')
 
-                            result_dict = {
-                                "payload": {"error": str(e)},
-                                "status": "ERROR",
-                            }
-                        finally:
-                            if write_cache:
-                                red_cache.set(
-                                    cache_key,
-                                    json.dumps(result_dict, default=str),
-                                    ex=CACHE_EXPIRATION_DURATION
-                                )
+                if not found_in_cache:
+                    try:
+                        start_time = datetime.now(timezone.utc)
+                        tool_result = await self.async_exec(*args)
+                        end_time = datetime.now(timezone.utc)
+                        logger.info(f"Run tool::{self.tool_name} execution time:{end_time - start_time}")
+
+                        # If success. The result is a dict with the result and status
+                        result_dict = {
+                            "result": tool_result,
+                            "status": "SUCCESS",
+                            "start_time": start_time,
+                            "end_time": end_time,
+                        }
+                    except Exception as e:
+                        logger.exception(e)
+                        # If error. The result is a dict with the error and status
+                        result_dict = {
+                            "error": str(e),
+                            "status": "ERROR",
+                        }
+                    finally:
+                        if write_cache:
+                            red_cache.set(
+                                cache_key,
+                                json.dumps(result_dict, default=str),
+                                ex=CACHE_EXPIRATION_DURATION
+                            )
 
                 res_stream_key = f"nnext::outstream::agent->{agent}::tool->{self.tool_name}"
                 red_stream.xadd(res_stream_key, {
@@ -162,7 +168,7 @@ class CallableDFColumnTool(_AbstractClass, Callable):
                     'correlation_id': correlation_id,
                 })
                 self.set_last_processed_message_id(message_id)
-                # red_stream.xdel(stream_key, message_id)
+                logger.info(f"Finished running tool::{self.tool_name}. Set last processed message id to {message_id}. Wrote result to stream {res_stream_key}")
 
         return None
 
@@ -180,19 +186,3 @@ class CallableDFColumnTool(_AbstractClass, Callable):
             logger.critical(f"Redis connection error: {redis_connection_error}. Is Redis running and variable 'REDIS_STREAM_HOST' set?")
         finally:
             self.new_event_loop.close()
-
-    def __call__(self, func):
-        logger.info("!!! TODO: REMOVE Initialized on first call", func)
-
-class ToolDecor(object):
-    def __init__(self, name, invoke_commands, *args, **kwargs):
-        self.name = name
-        self.invoke_commands = invoke_commands
-        self.with_cache = kwargs.get('with_cache', True)
-        logger.info(f"Initializing Tool: [name='{name}' invoke_commands='{invoke_commands}']")
-
-    def __call__(self, func):
-        logger.info(f"Running Tool event loop for [name={self.name}]", func)
-        c = CallableDFColumnTool(func, name=self.name, invoke_commands=self.invoke_commands)
-
-        return c

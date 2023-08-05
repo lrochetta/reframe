@@ -325,13 +325,15 @@ class Agent(object):
                 table_name = message_data['table_name']
                 correlation_id = payload.get('_id')
 
-                logger.info(f"Running tool->{tool_name} with payload->{payload}")
-
-                red_stream.xadd(tool_stream_key, {
+                message = {
                     'payload': json.dumps(payload),
                     'correlation_id': correlation_id,
                     'agent': self.name,
-                })
+                }
+
+                logger.debug(f"Running tool->{tool_name} with payload->{(pformat(message))}")
+
+                red_stream.xadd(tool_stream_key, message)
 
                 task_key = f"nnext::task-pending::agent->{self.name}::correlation_id->{correlation_id}"
                 red_cache.set(
