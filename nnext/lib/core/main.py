@@ -15,6 +15,7 @@ import redis
 from os import environ as env
 import tiktoken
 import jinja2
+from dotenv import load_dotenv
 from loguru import logger
 from psycopg import sql
 import openai
@@ -43,6 +44,7 @@ jinja_env = jinja2.Environment()
 
 class SingleActionChatAgent(RedisStreamProcessor):
     def __init__(self, name, invoke_commands, chat_template, tool_list=[], tool_graph={}, *args, **kwargs):
+        load_dotenv()
         self.name = name
         self.invoke_commands = invoke_commands
         self.tool_graph = tool_graph
@@ -325,8 +327,6 @@ class SingleActionChatAgent(RedisStreamProcessor):
         await self.reap()
         await self.collate()
 
-        return None
-
     def add_tool(self, tool):
         raise NotImplementedError
 
@@ -338,8 +338,6 @@ class SingleActionChatAgent(RedisStreamProcessor):
         try:
             while True:
                 self.new_event_loop.run_until_complete(self.wait_func())
-                # break
-
         except redis.exceptions.ConnectionError as redis_connection_error:
             logger.critical(
                 f"Redis connection error: {redis_connection_error}. Is Redis running and variable 'REDIS_STREAM_HOST' set?")

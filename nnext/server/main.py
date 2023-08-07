@@ -20,7 +20,7 @@ load_dotenv()
 logger.info("Loaded .env file")
 
 app = FastAPI(
-    title="nnext",
+    title="aigent",
     description="Supercharge your LLM agents.",
     version="0.0.1",
 )

@@ -165,16 +165,10 @@ async def run_react_agent(
     PLAT_DB_USER = env.get('PLAT_DB_USER', 'postgres')
     PLAT_DB_PASS = env.get('PLAT_DB_PASS')
     PLAT_DB_NAME = env.get('PLAT_DB_NAME')
-    print("Connecting to plat db", PLAT_DB_HOST)
-    print("Connecting to plat db", PLAT_DB_PASS)
-    print("Connecting to plat db", PLAT_DB_USER)
-    print("Connecting to plat db", PLAT_DB_NAME)
 
     _sql_obj= sql.SQL(sql_query_text)
 
     prompt_text = ''
-    print()
-
     for prompt_obj in prompt:
         for child in prompt_obj['children']:
             if child.get('type') == 'mention':
@@ -242,3 +236,89 @@ async def run_react_agent(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Agent with id: {agentId} not found",
     )
+
+@router.post(
+    "/agent/single_action_chat_agent/run",
+    name="Prompt agent",
+    description="Invoke a single action chat agent",
+)
+async def single_action_chat_agent(
+    # agentId: str,
+    body: dict,
+    background_tasks: BackgroundTasks
+):
+
+    """Agent detail endpoint"""
+    sql_query_text = body.get("sql_query_text")
+    table_name = body.get("table")
+    output_column = body.get("output_column")
+    prompt = body.get("prompt")
+
+    try:
+        print("Creating job...")
+        job = prisma.job.create(
+            {
+                "id": str(uuid7()),
+            }
+        )
+
+        print(job)
+
+    except Exception as e:
+        logging.exception(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=e,
+        )
+
+    # PLAT DATABASE.
+    # For client data that displays on the platform.
+    PLAT_DB_HOST = env.get('PLAT_DB_HOST', 'localhost')
+    PLAT_DB_USER = env.get('PLAT_DB_USER', 'postgres')
+    PLAT_DB_PASS = env.get('PLAT_DB_PASS')
+    PLAT_DB_NAME = env.get('PLAT_DB_NAME')
+
+    _sql_obj= sql.SQL(sql_query_text)
+
+    prompt_text = ''
+    for prompt_obj in prompt:
+        for child in prompt_obj['children']:
+            if child.get('type') == 'mention':
+                prompt_text += "@" + child['column']
+            else:
+                prompt_text += child['text']
+
+    logger.debug(f"Prompt text: '{prompt_text}'")
+
+    async with await psycopg.AsyncConnection.connect(
+        host=PLAT_DB_HOST,
+        user=PLAT_DB_USER,
+        password=PLAT_DB_PASS,
+        dbname=PLAT_DB_NAME,
+        autocommit=True
+    ) as plat_db_conn:
+        print("Connected to DBx", plat_db_conn)
+        async with plat_db_conn.cursor() as acur:
+            logger.info(f"Connected to DB. Running query {_sql_obj}")
+            await acur.execute(_sql_obj)
+
+            async for record in acur:
+                print(record)
+
+                stream_key = "nnext::instream::agent->browser"
+                stream_message = {
+                    'ts': time(),
+                    'payload': json.dumps({
+                        "_id": str(record[0]),
+                        "url": record[1]
+                    }),
+                    'job_id': str(job.id),
+                    "table_name": table_name,
+                    "prompt": json.dumps(prompt),
+                    "prompt_text": prompt_text,
+                    "output_column": output_column,
+                }
+                red_stream.xadd(stream_key, stream_message)
+                logger.debug(f"Added elem to stream {stream_key}. Elem: {stream_message}")
+
+    return {"status": "success"}
