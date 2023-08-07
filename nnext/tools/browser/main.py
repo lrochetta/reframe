@@ -65,5 +65,5 @@ if __name__ == "__main__":
         invoke_commands=["browse", "visit", "open"],
         with_cache=True
     )
-    logger.info(f"Starting browser tool agent")
+    logger.info(f"🏁 Starting browser tool")
     browser_tool.run()
