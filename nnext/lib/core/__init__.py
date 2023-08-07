@@ -1,1 +1,1 @@
-from .tool import AsyncTool
+from .StreamProcessor import RedisStreamProcessor

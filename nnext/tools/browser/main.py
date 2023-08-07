@@ -14,7 +14,7 @@ from loguru import logger
 import validators
 
 # Internal Libraries
-from nnext.lib.core import AsyncTool
+from nnext.lib.core.tool import AsyncTool
 
 # Global Variables
 BRIGHT_DATA_KEY = os.environ.get("BRIGHT_DATA_KEY")

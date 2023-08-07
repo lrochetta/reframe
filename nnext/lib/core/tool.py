@@ -9,7 +9,6 @@ import inspect
 from os import environ as env
 import hashlib
 from abc import ABCMeta, abstractmethod
-from collections.abc import Callable
 import json
 from datetime import datetime, timezone
 from pprint import pprint, pformat
@@ -19,7 +18,8 @@ import redis
 from loguru import logger
 
 # Internal Libraries
-from nnext.lib.core.decor import with_cache
+from nnext.lib.utils import fmt_payload
+from nnext.lib.core import RedisStreamProcessor
 
 # Global Variables
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
@@ -41,47 +41,14 @@ def _hasattr(C, attr):
 
 # Class to be inherited by all tools.
 # AsyncTool is an abstract class that defines the interface for all tools.
-# All tools must implement the async_exec method.
-class AsyncTool(object):
+class AsyncTool(RedisStreamProcessor):
     def __init__(self, name, invoke_commands, *args, **kwargs):
         self.name = name
         self.tool_name = name
         self.invoke_commands = invoke_commands
         self.with_cache = kwargs.get('with_cache', True)
 
-        self.instream_key = f"nnext::instream::tool->{self.tool_name}"
-        self.last_processed_stream_key = f"{self.instream_key}::processed_pointer"
-        self.last_processed_message_id = red_stream.get(self.last_processed_stream_key)
-        logger.debug(f"Instream key: {self.instream_key}")
-        logger.debug(f"Last processed message id: {self.last_processed_message_id}")
-
-    def get_last_processed_message_id(self):
-        last_processed_message_id = red_stream.get(self.last_processed_stream_key)
-        if last_processed_message_id is None:
-            last_processed_message_id = "0-0"
-
-        return last_processed_message_id
-
-    def set_last_processed_message_id(self, message_id):
-        last_processed_message_id = self.get_last_processed_message_id()
-
-        old_ts, old_seq = last_processed_message_id.split("-")
-        old_ts, old_seq = int(old_ts), int(old_seq)
-
-        new_ts, new_seq = message_id.split("-")
-        new_ts, new_seq = int(new_ts), int(new_seq)
-
-        if new_ts >= old_ts:
-            last_processed_message_id = message_id
-        elif new_ts == old_ts and new_seq >= old_seq:
-            last_processed_message_id = message_id
-        else:
-            print("!!!")
-            exit(3)
-
-        red_stream.set(self.last_processed_stream_key, last_processed_message_id)
-
-        return last_processed_message_id
+        super().__init__(instream_key=f"tool->{self.tool_name}")
 
     @abstractmethod
     def async_exec(self, *args, **kwargs):
@@ -123,7 +90,7 @@ class AsyncTool(object):
                     cache_val = red_cache.get(cache_key)
 
                     if cache_val:
-                        logger.opt(ansi=True).debug(f'Found element in cache - returning cached results. <green>{cache_val[:250]}...</green>')
+                        logger.opt(ansi=True).debug(f'Found element in cache - returning cached results. <green>{fmt_payload(cache_val)}...</green>')
                         try:
                             # Attempt to load the cache value as a json.
                             result_dict = json.loads(cache_val)
@@ -131,10 +98,11 @@ class AsyncTool(object):
                         except Exception as e:
                             logger.exception(e)
                     else:
-                        logger.debug('No cache found or skipping cache - running agent')
+                        logger.debug(f'No cache found for key {cache_key}')
 
                 # Not found in cache or using cache. Run the agent.
                 if not found_in_cache:
+                    logger.debug('No cache found or skipping cache - running function')
                     try:
                         start_time = datetime.now(timezone.utc)
                         tool_result = await self.async_exec(*args)
@@ -165,6 +133,7 @@ class AsyncTool(object):
                             )
                 # Write the results to the outstream to be picked up by the agent
                 res_stream_key = f"nnext::outstream::agent->{agent}::tool->{self.tool_name}"
+
                 red_stream.xadd(res_stream_key, {
                     'payload': json.dumps(result_dict, default=str),
                     'correlation_id': correlation_id,
@@ -175,7 +144,7 @@ class AsyncTool(object):
         return None
 
     def run(self, *args, **kwargs):
-        logger.debug("Running CallableDFColumnTool", *args, **kwargs)
+        logger.debug("Running AsyncTool", *args, **kwargs)
         self.new_event_loop = asyncio.new_event_loop()
         try:
             while True:
