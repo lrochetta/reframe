@@ -42,10 +42,11 @@ jinja_env = jinja2.Environment()
 # ------------------------------
 
 class SingleActionChatAgent(RedisStreamProcessor):
-    def __init__(self, name, invoke_commands, tool_graph, chat_template, *args, **kwargs):
+    def __init__(self, name, invoke_commands, chat_template, tool_list=[], tool_graph={}, *args, **kwargs):
         self.name = name
         self.invoke_commands = invoke_commands
         self.tool_graph = tool_graph
+        self.tool_list = tool_list
 
         for _template in chat_template:
             _template["content"] = jinja_env.from_string(_template["content"])
@@ -60,7 +61,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
     def __del__(self):
         logger.info(f"Deconstructed NNextAgent [name={self.name}]")
         self.new_event_loop.stop()
-        self.disconnect_db()
+        asyncio.run(self.disconnect_db())
 
     async def connect_to_db(self):
         PLAT_DB_HOST = env.get('PLAT_DB_HOST', 'localhost')
@@ -127,7 +128,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
             for _j in stream_messages:
                 message_id, message_data = _j
                 logger.debug(f"Received stream_key={stream_key}, message_id={message_id} message_data={pformat(message_data)}")
-                tool_name = self.tool_graph['tools']["browser"].get('name')
+                tool_name = self.tool_list[0].get('name')
 
                 tool_stream_key = f"nnext::instream::tool->{tool_name}"
 
@@ -173,11 +174,11 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
     # Gather results from the result stream and place them into a set.
     async def reap(self):
-        tool_name = self.tool_graph['tools']["browser"].get('id')
+        tool_name = self.tool_list[0].get('name')
 
         # Iterate over all the tools and get their results.
         tool_stream_key_map = {}
-        for tool_key, tool in self.tool_graph['tools'].items():
+        for tool in self.tool_list:
             tool_stream_key = f"nnext::outstream::agent->{self.name}::tool->{tool.get('id')}"
             tool_stream_key_map[tool_stream_key] = 0
         l = red_stream.xread(count=3, streams=tool_stream_key_map, block=5)
@@ -199,6 +200,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
                 red_stream.set(result_key, json.dumps(message_data, default=str))
 
+
     async def collate(self):
         key_prefix = f"nnext::task-pending::agent->{self.name}::correlation_id->*"
         for key in red_stream.scan_iter(key_prefix):
@@ -209,15 +211,13 @@ class SingleActionChatAgent(RedisStreamProcessor):
             if llm_prompt:
                 llm_prompt = json.loads(llm_prompt)
 
-
-            print("LLM Prompt: ", llm_prompt)
-
             tools_result_set_complete = True
             db_result = None
             tool_result_map = {}
             # Check if all tools have completed.
-            for tool_key, tool in self.tool_graph['tools'].items():
+            for tool in self.tool_list:
                 tool_output_template = tool.get('output')
+                tool_key = tool.get('name')
                 tool_results = red_stream.get(
                     f"nnext::memory::agent->{self.name}::tool->{tool.get('id')}[0]::elem->{correlation_id}"
                 )
@@ -321,13 +321,9 @@ class SingleActionChatAgent(RedisStreamProcessor):
         logger.debug(f"@on_plan Started plan->{plan}")
 
     async def wait_func(self, *args, **kwargs):
-        sow_co = self.sow()
-        reap_co = self.reap()
-        collate_co = self.collate()
-
-        await sow_co
-        await reap_co
-        await collate_co
+        await self.sow()
+        await self.reap()
+        await self.collate()
 
         return None
 
@@ -349,6 +345,5 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 f"Redis connection error: {redis_connection_error}. Is Redis running and variable 'REDIS_STREAM_HOST' set?")
         except Exception as e:
             logger.exception(e)
-            logger.critical(f"Exception: {e}")
         finally:
             self.new_event_loop.close()
