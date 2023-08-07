@@ -297,15 +297,31 @@ async def single_action_chat_agent(
         dbname=PLAT_DB_NAME,
         autocommit=True
     ) as plat_db_conn:
-        print("Connected to DBx", plat_db_conn)
+        print("Connected to DB", plat_db_conn)
         async with plat_db_conn.cursor() as acur:
             logger.info(f"Connected to DB. Running query {_sql_obj}")
             await acur.execute(_sql_obj)
 
             async for record in acur:
-                print(record)
+                is_browser_agent = False
+                is_serp_agent = False
+                for key_word in ["browser", "visit"]:
+                    if f"/{key_word}" in prompt_text:
+                        is_browser_agent = True
+                        break
 
-                stream_key = "nnext::instream::agent->browser"
+                for key_word in ["google_search", "search_google", "google"]:
+                    if f"/{key_word}" in prompt_text:
+                        is_serp_agent = True
+                        break
+
+                if is_browser_agent:
+                    stream_key = "nnext::instream::agent->browser"
+                elif is_serp_agent:
+                    stream_key = "nnext::instream::agent->serp"
+                else:
+                    raise Exception("Unknown agent type")
+
                 stream_message = {
                     'ts': time(),
                     'payload': json.dumps({

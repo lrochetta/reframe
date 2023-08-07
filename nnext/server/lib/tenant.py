@@ -15,6 +15,6 @@ from nnext.server.lib.prisma import prisma
 
 # Functions
 def init_default():
-    agent = prisma.tenant.find_unique(where={"slug": 'default'}, include={"prompt": True})
+    # agent = prisma.tenant.find_unique(where={"slug": 'default'}, include={"prompt": True})
 
     logger.info("🏠 Initialized default tenant")
