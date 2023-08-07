@@ -43,12 +43,12 @@ enum ToolType {
 
 model User {
     @@map("user")
-    id         String       @id @default(cuid()) @db.VarChar(255)
+    _id         String       @id @default(cuid()) @db.VarChar(255)
     email      String       @unique @db.VarChar(255)
     password   String?      @db.VarChar(255)
     name       String?      @db.VarChar(255)
-    createdAt  DateTime?    @default(now())
-    updatedAt  DateTime?    @updatedAt
+    _cr  DateTime?    @default(now())
+    _up  DateTime?    @_up
     deletedAt  DateTime?
     profile    Profile?
     Agent      Agent[]
@@ -62,7 +62,7 @@ model User {
 
 model Profile {
     @@map("profile")
-    id       String @id @default(cuid()) @db.VarChar(255)
+    _id       String @id @default(cuid()) @db.VarChar(255)
     userId   String @unique @db.VarChar(255)
     user     User   @relation(fields: [userId], references: [id])
     metadata Json?  @default("{}")
@@ -70,15 +70,15 @@ model Profile {
 
 model Document {
     @@map("document")
-    id            String          @id @default(cuid()) @db.VarChar(255)
+    _id            String          @id @default(cuid()) @db.VarChar(255)
     userId        String          @db.VarChar(255)
     user          User            @relation(fields: [userId], references: [id])
     type          DocumentType    @default(TXT)
     url           String?         @db.Text()
     name          String
     splitter      Json?
-    createdAt     DateTime?       @default(now())
-    updatedAt     DateTime?       @updatedAt
+    _cr     DateTime?       @default(now())
+    _up     DateTime?       @_up
     index         Json?
     authorization Json?
     metadata      Json?
@@ -88,7 +88,7 @@ model Document {
 
 model Agent {
     @@map("agent")
-    id            String          @id @default(cuid()) @db.VarChar(255)
+    _id            String          @id @default(cuid()) @db.VarChar(255)
     userId        String          @db.VarChar(255)
     user          User            @relation(fields: [userId], references: [id])
     document      Document?       @relation(fields: [documentId], references: [id])
@@ -104,8 +104,8 @@ model Agent {
     hasMemory     Boolean         @default(false)
     isPublic      Boolean         @default(false)
     AgentMemory   AgentMemory[]
-    createdAt     DateTime?       @default(now())
-    updatedAt     DateTime?       @updatedAt
+    _cr     DateTime?       @default(now())
+    _up     DateTime?       @_up
     AgentTrace    AgentTrace[]
     AgentDocument AgentDocument[]
     AgentTool     AgentTool[]
@@ -113,7 +113,7 @@ model Agent {
 
 model ApiToken {
     @@map("api_token")
-    id          String @id @default(cuid()) @db.VarChar(255)
+    _id          String @id @default(cuid()) @db.VarChar(255)
     userId      String @db.VarChar(255)
     user        User   @relation(fields: [userId], references: [id])
     description String @db.VarChar(255)
@@ -122,95 +122,107 @@ model ApiToken {
 
 model AgentMemory {
     @@map("agent_memory")
-    id        String                @id @default(cuid()) @db.VarChar(255)
+    _id        String                @id @default(cuid()) @db.VarChar(255)
     agentId   String                @db.VarChar(255)
     agent     Agent                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
     author    AgentMemoryAuthorType @default(HUMAN)
     message   String                @db.Text()
-    createdAt DateTime?             @default(now())
-    updatedAt DateTime?             @updatedAt
+    _cr DateTime?             @default(now())
+    _up DateTime?             @_up
     deletedAt DateTime?
 }
 
 model AgentTrace {
     @@map("agent_trace")
-    id        String    @id @default(cuid()) @db.VarChar(255)
+    _id        String    @id @default(cuid()) @db.VarChar(255)
     userId    String    @db.VarChar(255)
     user      User      @relation(fields: [userId], references: [id])
     agentId   String    @db.VarChar(255)
     data      Json
     agent     Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
-    createdAt DateTime? @default(now())
-    updatedAt DateTime? @updatedAt
+    _cr DateTime? @default(now())
+    _up DateTime? @_up
 }
 
 model Prompt {
     @@map("prompt")
-    id              String    @id @default(cuid()) @db.VarChar(255)
+    _id              String    @id @default(cuid()) @db.VarChar(255)
     name            String
     template        String    @db.Text()
     input_variables Json
     userId          String    @db.VarChar(255)
     user            User      @relation(fields: [userId], references: [id])
-    createdAt       DateTime? @default(now())
-    updatedAt       DateTime? @updatedAt
+    _cr       DateTime? @default(now())
+    _up       DateTime? @_up
     deletedAt       DateTime?
     Agent           Agent[]
 }
 
 model AgentDocument {
     @@map("agent_document")
-    id         String    @id @default(cuid()) @db.VarChar(255)
+    _id         String    @id @default(cuid()) @db.VarChar(255)
     document   Document? @relation(fields: [documentId], references: [id])
     documentId String?   @db.VarChar(255)
     agentId    String    @db.VarChar(255)
     agent      Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
-    createdAt  DateTime? @default(now())
-    updatedAt  DateTime? @updatedAt
+    _cr  DateTime? @default(now())
+    _up  DateTime? @_up
     deletedAt  DateTime?
 }
 
 model Tag {
     @@map("tag")
-    id        String    @id @default(cuid()) @db.VarChar(255)
+    _id        String    @id @default(cuid()) @db.VarChar(255)
     name      String
     color     String?   @default("#0e8a16")
     userId    String    @db.VarChar(255)
     user      User      @relation(fields: [userId], references: [id])
-    createdAt DateTime? @default(now())
-    updatedAt DateTime? @updatedAt
+    _cr DateTime? @default(now())
+    _up DateTime? @_up
+}
+
+model Tenant {
+    @@map("tenant")
+    _id         String      @id @default(uuid()) @db.VarChar(255)
+    _cr         DateTime?   @default(now())
+    _up         DateTime?   @_up
+    name        String
+    slug        String
+    db_url      String
 }
 
 model Tool {
     @@map("tool")
-    id          String      @id @default(cuid()) @db.VarChar(255)
+    _id          String      @id @default(cuid()) @db.VarChar(255)
+    _cr   DateTime?   @default(now())
+    _up   DateTime?   @_up
     name        String
     description String?     @db.Text()
     type        ToolType?
     metadata    Json?
     userId      String      @db.VarChar(255)
     user        User        @relation(fields: [userId], references: [id])
-    createdAt   DateTime?   @default(now())
-    updatedAt   DateTime?   @updatedAt
     Agent       Agent[]
     AgentTool   AgentTool[]
 }
 
 model AgentTool {
     @@map("agent_tool")
-    id        String    @id @default(cuid()) @db.VarChar(255)
+    _id          String      @id @default(cuid()) @db.VarChar(255)
+    _cr   DateTime?   @default(now())
+    _up   DateTime?   @_up
     tool      Tool?     @relation(fields: [toolId], references: [id])
     toolId    String?   @db.VarChar(255)
     agentId   String    @db.VarChar(255)
     agent     Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
-    createdAt DateTime? @default(now())
-    updatedAt DateTime? @updatedAt
+    _cr DateTime? @default(now())
+    _up DateTime? @_up
     deletedAt DateTime?
 }
 
 model Job {
     @@map("job")
-    id       String       @map("_id")   @id @default(uuid())   @db.Uuid
+    _id       String       @map("_id")   @id @default(uuid())   @db.Uuid
     cr       DateTime     @map("_cr")   @default(now())    @db.Timestamp(6)
     up       DateTime     @map("_up")   @default(now())    @db.Timestamp(6)
     dl       DateTime?    @map("_dl")   @db.Timestamp(6)
