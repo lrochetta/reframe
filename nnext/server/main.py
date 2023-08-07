@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Internal Libraries
 from nnext.server.lib.prisma import prisma
+from nnext.server.lib import tenant
 from nnext.server.routers import router
 
 load_dotenv()
@@ -46,6 +47,7 @@ async def add_process_time_header(request: Request, call_next):
 @app.on_event("startup")
 async def startup():
     prisma.connect()
+    tenant.init_default()
 
 
 @app.on_event("shutdown")
