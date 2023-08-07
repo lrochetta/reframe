@@ -19,7 +19,7 @@ from nnext.server.lib.agents.base import AgentBase
 from nnext.server.lib.agents.factory import AgentFactory
 from nnext.server.lib.auth.api import get_api_key
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
-from nnext.server.lib.models.agent import Agent, PredictAgent
+from nnext.server.lib.db_models.agent import Agent, PredictAgent
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()

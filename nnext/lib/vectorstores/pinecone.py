@@ -1,6 +1,5 @@
 import pinecone
 from decouple import config
-from langchain.vectorstores.pinecone import Pinecone
 
 pinecone.init(
     api_key=config("PINECONE_API_KEY"),  # find at app.pinecone.io

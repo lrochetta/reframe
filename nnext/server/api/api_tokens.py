@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from nnext.server.lib.api_tokens import generate_api_token
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
-from nnext.server.lib.models.api_token import ApiToken
+from nnext.server.lib.db_models.api_token import ApiToken
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()

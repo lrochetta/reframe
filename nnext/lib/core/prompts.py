@@ -1,9 +1,5 @@
 # flake8: noqa
 from typing import List
-from langchain.prompts.prompt import PromptTemplate
-from langchain.prompts import StringPromptTemplate
-from langchain.agents import Tool
-
 
 class CustomPromptTemplate(StringPromptTemplate):
     template: str
