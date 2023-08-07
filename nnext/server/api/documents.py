@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
 from nnext.server.lib.documents import upsert_document, valid_ingestion_types
-from nnext.server.lib.models.document import Document
+from nnext.server.lib.db_models.document import Document
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()

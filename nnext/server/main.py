@@ -21,7 +21,7 @@ logger.info("Loaded .env file")
 
 app = FastAPI(
     title="aigent",
-    description="Supercharge your LLM agents.",
+    description="Supercharge your workflows on data tables using LLM agents.",
     version="0.0.1",
 )
 

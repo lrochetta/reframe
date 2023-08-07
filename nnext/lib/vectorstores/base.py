@@ -12,6 +12,6 @@ class VectorStoreBase:
 
     def get_database(self) -> Any:
         if self.vectorstore == "pinecone":
-            from nnext.server.lib.vectorstores.pinecone import PineconeVectorstore
+            from nnext.lib.vectorstores.pinecone import PineconeVectorstore
 
             return PineconeVectorstore()

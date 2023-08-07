@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
 from nnext.server.lib.auth.prisma import JWTBearer
-from nnext.server.lib.models.agent_document import AgentDocument
+from nnext.server.lib.db_models.agent_document import AgentDocument
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()

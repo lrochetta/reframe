@@ -6,7 +6,6 @@ __copyright__ = "Copyright © 2023 NNext, Co."
 # Standard Libraries
 
 # External Libraries
-import redis
 from loguru import logger
 
 # Internal Libraries
@@ -26,7 +25,8 @@ browser_agent = SingleActionChatAgent(
         "output": "web_page_content"
     }],
     chat_template = [
-        {"role": "system", "content": "Given the following content. Return the information asked without generating supperfluous text. Answer with as few words as possible."},
+        {"role": "system", "content": "Given the following content. Return the information asked without generating "
+                                      "superfluous text. Answer with as few words as possible."},
         {"role": "user", "content": "{{web_page_content}}"},
         {"role": "assistant", "content": "Thanks. I have understood the context. Please provide the prompt"},
         {"role": "user", "content": "{{llm_prompt}}"}

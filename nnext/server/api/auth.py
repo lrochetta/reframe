@@ -7,7 +7,7 @@ from nnext.server.lib.auth.prisma import (
     signJWT,
     validatePassword,
 )
-from nnext.server.lib.models.auth import SignIn, SignInOut, SignUp
+from nnext.server.lib.db_models.auth import SignIn, SignInOut, SignUp
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()

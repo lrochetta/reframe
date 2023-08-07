@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
-from nnext.server.lib.models.tag import Tag
+from nnext.server.lib.db_models.tag import Tag
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()

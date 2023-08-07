@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter, Depends
 
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
-from nnext.server.lib.models.tool import Tool
+from nnext.server.lib.db_models.tool import Tool
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()
