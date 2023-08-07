@@ -15,8 +15,11 @@ import openai
 
 # Internal Libraries
 from nnext.lib.core.decor import with_cache
+from nnext.lib.utils import fmt_payload
 
 # Global Variables
+
+
 openai.api_key = env.get('OPENAI_API_KEY')
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
 # Redis Cache
@@ -32,7 +35,9 @@ async def openai_chat(messages, *args, **kwargs):
     num_retries = kwargs.pop('num_retries', 3)
     for i in range(num_retries):
         try:
-            logger.debug(f"Calling openai_chat with {pformat(messages)}")
+            msg = fmt_payload(messages)
+
+            logger.debug(f"Calling openai_chat with {msg}")
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages

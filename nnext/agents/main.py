@@ -14,7 +14,7 @@ from loguru import logger
 
 # Internal Libraries
 from nnext.lib.models.llms.main import OpenAI
-from nnext.lib.core.main import Agent
+from nnext.lib.core.main import SingleActionChatAgent
 
 from dotenv import load_dotenv
 
@@ -54,17 +54,7 @@ META_DB_URL = f"postgresql://{META_DB_USER}:{META_DB_PASS}@{META_DB_HOST}/nnext"
 
 llm = OpenAI()
 
-prompt_template = """
-    Given the following content extracted from a webpage:
-    {{web_page_content}}
-    
-    
-    {{llm_prompt}}
-"""
-
-print(prompt_template)
-
-browser_agent = Agent(
+browser_agent = SingleActionChatAgent(
     name="browser",
     invoke_commands=["browse", "visit", "open"],
     tool_graph={
@@ -78,7 +68,12 @@ browser_agent = Agent(
         },
         'links': {}
     },
-    prompt_template=prompt_template,
+    chat_template = [
+        {"role": "system", "content": "Given the following content. Return the information asked without generating supperfluous text. Answer with as few words as possible."},
+        {"role": "user", "content": "{{web_page_content}}"},
+        {"role": "assistant", "content": "Thanks. I have understood the context. Please provide the prompt"},
+        {"role": "user", "content": "{{llm_prompt}}"}
+    ],
     llm=llm
 )
 

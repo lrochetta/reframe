@@ -31,8 +31,6 @@ def with_cache(prefix, *args, **kwargs):
     def wrapper(func):
 
         async def wrapped(*args, **kwargs):
-            # logger.info(f"Wrapped NNextApp")
-            logger.info(f"{args, kwargs}")
             arg_str = f"{args, kwargs}"
 
             cache_key = hashlib.sha256(str(arg_str).encode('utf-8')).hexdigest()
@@ -41,38 +39,41 @@ def with_cache(prefix, *args, **kwargs):
             read_cache = kwargs.pop('read_cache', True)
             write_cache = kwargs.pop('write_cache', True)
 
+            found_in_cache = False
             if read_cache:
                 cache_val = red_cache.get(cache_key)
 
                 if cache_val:
-                    logger.debug('Found element in cache - returning cached results', cache_val)
+                    logger.opt(ansi=True).debug(f'Found element in cache - returning cached results. <green>{cache_val[:250]}...</green>')
                     try:
+                        # Attempt to load the cache value as a json.
                         result_dict = json.loads(cache_val)
-                        _result = json.loads(result_dict['result'])
-                        return _result
+                        found_in_cache = True
+                        return result_dict['result']
                     except Exception as e:
-                        pass
-                        # return result_dict['result']
+                        logger.exception(e)
+                else:
+                    logger.debug(f'No cache found for key {cache_key}')
 
-            if True:
+            if not found_in_cache:
                 logger.debug('No cache found or skipping cache - running function')
-                # print("Calling function", func, args, kwargs)
-
                 try:
                     start_time = datetime.now(timezone.utc)
                     _result = await func(*args, **kwargs)
                     end_time = datetime.now(timezone.utc)
+
+                    # If success. The result is a dict with the result and status
                     result_dict = {
-                        "result": json.dumps(_result, default=str),
+                        "result": _result,
                         "status": "SUCCESS",
                         "start_time": start_time,
                         "end_time": end_time,
                     }
                 except Exception as e:
                     logger.exception(e)
-
+                    # If error. The result is a dict with the error and status
                     result_dict = {
-                        "payload": {"error": str(e)},
+                        "payload": str(e),
                         "status": "ERROR",
                     }
                 finally:
