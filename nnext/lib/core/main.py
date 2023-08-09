@@ -140,8 +140,6 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 table_name = message_data['table_name']
                 correlation_id = payload.get('_id')
 
-                print("Correlation ID: ", correlation_id)
-
                 message = {
                     'payload': json.dumps(payload),
                     'correlation_id': correlation_id,
@@ -254,7 +252,6 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 formated_template = []
 
                 for _template in self.chat_template:
-                    print(_template["content"])
                     formated_content = _template["content"].render(tool_result_map)
                     tokenized = enc.encode(formated_content)
 
