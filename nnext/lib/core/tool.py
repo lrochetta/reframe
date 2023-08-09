@@ -42,11 +42,13 @@ def _hasattr(C, attr):
 # Class to be inherited by all tools.
 # AsyncTool is an abstract class that defines the interface for all tools.
 class AsyncTool(RedisStreamProcessor):
-    def __init__(self, name, invoke_commands, *args, **kwargs):
+    def __init__(self, name, invoke_commands, read_cache=True, write_cache=True, *args, **kwargs):
         self.name = name
         self.tool_name = name
         self.invoke_commands = invoke_commands
-        self.with_cache = kwargs.get('with_cache', True)
+        self.read_cache = read_cache
+        self.write_cache = write_cache
+
 
         super().__init__(instream_key=f"tool->{self.tool_name}")
 
@@ -78,15 +80,12 @@ class AsyncTool(RedisStreamProcessor):
                 args_dict = {arg_name: payload.get(arg_name, None) for arg_name in arg_names if arg_name not in ['self']}
 
                 logger.opt(ansi=True).info(f"Running tool for agent:: <yellow>{agent}</yellow> with args: {args} and kwargs: {kwargs}. payload: {payload} correlation_id: <yellow>{correlation_id}</yellow>")
-                read_cache = True
-                write_cache = True
-
                 arg_dict_str = json.dumps(args_dict, sort_keys=True)
                 arg_dict_hash = hashlib.sha256(arg_dict_str.encode('utf-8')).hexdigest()
                 cache_key = f"nnext::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
 
                 found_in_cache = False
-                if read_cache:
+                if self.read_cache:
                     cache_val = red_cache.get(cache_key)
 
                     if cache_val:
@@ -125,7 +124,7 @@ class AsyncTool(RedisStreamProcessor):
                         }
                     finally:
                         # Write the result to cache
-                        if write_cache:
+                        if self.write_cache:
                             red_cache.set(
                                 cache_key,
                                 json.dumps(result_dict, default=str),
@@ -159,11 +158,12 @@ class AsyncTool(RedisStreamProcessor):
 # Class to be inherited by all tools.
 # AsyncTool is an abstract class that defines the interface for all tools.
 class Tool(RedisStreamProcessor):
-    def __init__(self, name, invoke_commands, *args, **kwargs):
+    def __init__(self, name, invoke_commands, read_cache=True, write_cache=True, *args, **kwargs):
         self.name = name
         self.tool_name = name
         self.invoke_commands = invoke_commands
-        self.with_cache = kwargs.get('with_cache', True)
+        self.read_cache = read_cache
+        self.write_cache = write_cache
 
         super().__init__(instream_key=f"tool->{self.tool_name}")
 
@@ -195,15 +195,13 @@ class Tool(RedisStreamProcessor):
                 args_dict = {arg_name: payload.get(arg_name, None) for arg_name in arg_names if arg_name not in ['self']}
 
                 logger.opt(ansi=True).info(f"Running tool for agent:: <yellow>{agent}</yellow> with args: {args} and kwargs: {kwargs}. payload: {payload} correlation_id: <yellow>{correlation_id}</yellow>")
-                read_cache = True
-                write_cache = True
 
                 arg_dict_str = json.dumps(args_dict, sort_keys=True)
                 arg_dict_hash = hashlib.sha256(arg_dict_str.encode('utf-8')).hexdigest()
                 cache_key = f"nnext::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
 
                 found_in_cache = False
-                if read_cache:
+                if self.read_cache:
                     cache_val = red_cache.get(cache_key)
 
                     if cache_val:
@@ -242,7 +240,7 @@ class Tool(RedisStreamProcessor):
                         }
                     finally:
                         # Write the result to cache
-                        if write_cache:
+                        if self.write_cache:
                             red_cache.set(
                                 cache_key,
                                 json.dumps(result_dict, default=str),

@@ -1,23 +1,17 @@
 import json
-from pprint import pprint
+from pprint import pprint, pformat
 from time import time
-import threading
 import logging
-from queue import Queue
-from typing import Any, Dict
 
 import uuid as uuid
 from psycopg import sql
 import psycopg
 from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from fastapi.security.api_key import APIKey
-from starlette.responses import StreamingResponse
 from uuid6 import uuid7
 from loguru import logger
 from nnext.server.lib.agents.base import AgentBase
 from nnext.server.lib.agents.factory import AgentFactory
-from nnext.server.lib.auth.api import get_api_key
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
 from nnext.server.lib.db_models.agent import Agent, PredictAgent
 from nnext.server.lib.prisma import prisma
@@ -281,10 +275,12 @@ async def single_action_chat_agent(
     _sql_obj= sql.SQL(sql_query_text)
 
     prompt_text = ''
+    input_column = ''
     for prompt_obj in prompt:
         for child in prompt_obj['children']:
             if child.get('type') == 'mention':
                 prompt_text += "@" + child['column']
+                input_column = child['column']
             else:
                 prompt_text += child['text']
 
@@ -297,37 +293,57 @@ async def single_action_chat_agent(
         dbname=PLAT_DB_NAME,
         autocommit=True
     ) as plat_db_conn:
-        print("Connected to DB", plat_db_conn)
+        logger.info(f"Connected to DB plat_db")
         async with plat_db_conn.cursor() as acur:
             logger.info(f"Connected to DB. Running query {_sql_obj}")
             await acur.execute(_sql_obj)
 
-            async for record in acur:
-                is_browser_agent = False
-                is_serp_agent = False
-                for key_word in ["browser", "visit"]:
-                    if f"/{key_word}" in prompt_text:
-                        is_browser_agent = True
-                        break
+            # Determine agent type
+            is_browser_agent = False
+            is_serp_agent = False
+            activation_command = None
+            for key_word in ["browse", "visit"]:
+                if f"/{key_word}" in prompt_text:
+                    is_browser_agent = True
+                    activation_command = f"/{key_word}"
+                    break
 
-                for key_word in ["google_search", "search_google", "google"]:
-                    if f"/{key_word}" in prompt_text:
-                        is_serp_agent = True
-                        break
+            for key_word in ["google_search", "search_google", "google", "search"]:
+                if f"/{key_word}" in prompt_text:
+                    is_serp_agent = True
+                    activation_command = f"/{key_word}"
+                    break
+
+            if is_browser_agent:
+                stream_key = "nnext::instream::agent->browser"
+            elif is_serp_agent:
+                stream_key = "nnext::instream::agent->serp"
+            else:
+                raise Exception("Unknown agent type")
+
+            record_count = 0
+            async for record in acur:
 
                 if is_browser_agent:
-                    stream_key = "nnext::instream::agent->browser"
+                    payload = {
+                        "_id": str(record[0]),
+                        "url": record[1]
+                    }
                 elif is_serp_agent:
-                    stream_key = "nnext::instream::agent->serp"
+                    serp_query = prompt_text.split(("."))[0].replace(activation_command, "")
+                    serp_query = serp_query.replace(f"@{input_column}", record[1])
+                    serp_query = serp_query.strip()
+
+                    payload = {
+                        "_id": str(record[0]),
+                        "query": serp_query
+                    }
                 else:
                     raise Exception("Unknown agent type")
 
                 stream_message = {
                     'ts': time(),
-                    'payload': json.dumps({
-                        "_id": str(record[0]),
-                        "url": record[1]
-                    }),
+                    'payload': json.dumps(payload),
                     'job_id': str(job.id),
                     "table_name": table_name,
                     "prompt": json.dumps(prompt),
@@ -335,6 +351,8 @@ async def single_action_chat_agent(
                     "output_column": output_column,
                 }
                 red_stream.xadd(stream_key, stream_message)
-                logger.debug(f"Added elem to stream {stream_key}. Elem: {stream_message}")
+                logger.debug(f"Added elem to stream {stream_key}. Elem: {pformat(stream_message)}")
+                record_count += 1
+            logger.info(f"Added {record_count} elems to stream {stream_key}")
 
     return {"status": "success"}
