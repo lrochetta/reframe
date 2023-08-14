@@ -63,7 +63,8 @@ if __name__ == "__main__":
     browser_tool = BrowserTool(
         name="browser",
         invoke_commands=["browse", "visit", "open"],
-        with_cache=True
+        read_cache=False,
+        write_cache=True
     )
     logger.info(f"🏁 Starting browser tool")
     browser_tool.run()

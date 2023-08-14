@@ -263,8 +263,8 @@ class SingleActionChatAgent(RedisStreamProcessor):
                     )
 
                 # Call OpenAI API.
-                response = await openai_chat(formated_template)
-                # response = await openai_chat(formated_template, read_cache=False, write_cache=True)
+                # response = await openai_chat(formated_template)
+                response = await openai_chat(formated_template, read_cache=False, write_cache=True)
                 # TODO: Check that the result is indeed a success.
                 db_result = {
                     "status": "SUCCESS",
