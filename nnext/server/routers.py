@@ -10,7 +10,7 @@ from nnext.server.api import (
     prompts,
     tags,
     tools,
-    tenants,
+    namespace,
     traces,
     users,
 )
@@ -23,7 +23,7 @@ router.include_router(
     agent_documents.router, tags=["Agent documents"], prefix=api_prefix
 )
 router.include_router(tags.router, tags=["Tags"], prefix=api_prefix)
-router.include_router(tenants.router, tags=["Tenants"], prefix=api_prefix)
+router.include_router(namespace.router, tags=["Namespace"], prefix=api_prefix)
 router.include_router(agent_tools.router, tags=["Agent tools"], prefix=api_prefix)
 router.include_router(auth.router, tags=["Auth"], prefix=api_prefix)
 router.include_router(users.router, tags=["User"], prefix=api_prefix)

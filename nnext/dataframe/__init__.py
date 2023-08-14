@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 NNext, Co."
+__copyright__ = "Copyright © 2023 The Reframery, Co."
 
 import dask.dataframe as dd
 import pandas as pd

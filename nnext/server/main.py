@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 NNext, Co."
+__copyright__ = "Copyright © 2023 The Reframery, Co."
 
 # Standard Libraries
 import time
@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from nnext.server.lib.prisma import prisma
 from nnext.server.lib import tenant
 from nnext.server.routers import router
+from nnext.server.lib.db_session import database_instance
 
 load_dotenv()
 logger.info("Loaded .env file")
@@ -48,6 +49,10 @@ async def add_process_time_header(request: Request, call_next):
 async def startup():
     prisma.connect()
     tenant.init_default()
+    await database_instance.connect()
+    app.state.meta_db = database_instance
+    app.state.trace_db = {}
+    app.state.data_db = {}
 
 
 @app.on_event("shutdown")
