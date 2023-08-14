@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from nnext.server.lib.api_tokens import generate_api_token
+from nnext.server.lib.api_key import generate_api_key
 from nnext.server.lib.auth.prisma import JWTBearer, decodeJWT
-from nnext.server.lib.db_models.api_token import ApiToken
+from nnext.server.lib.db_models.api_key import ApiKey
 from nnext.server.lib.prisma import prisma
 
 router = APIRouter()
 
 
 @router.post(
-    "/api-tokens", name="Create API token", description="Create a new API token"
+    "/api_key", name="Create API token", description="Create a new API token"
 )
-async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
+async def create_api_key(body: ApiKey, token=Depends(JWTBearer())):
     """Create api token endpoint"""
     decoded = decodeJWT(token)
-    token = generate_api_token()
+    token = generate_api_key()
 
     try:
         agent = prisma.apitoken.create(
@@ -36,15 +36,15 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
 
 
 @router.get("/api-tokens", name="List API tokens", description="List all API tokens")
-async def read_api_tokens(token=Depends(JWTBearer())):
+async def read_api_keys(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     decoded = decodeJWT(token)
-    api_tokens = prisma.apitoken.find_many(
+    api_keys = prisma.apitoken.find_many(
         where={"userId": decoded["userId"]}, include={"user": True}
     )
 
-    if api_tokens:
-        return {"success": True, "data": api_tokens}
+    if api_keys:
+        return {"success": True, "data": api_keys}
 
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -57,14 +57,14 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     name="Get API token",
     description="Get a specific API token",
 )
-async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
+async def read_api_key(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
-    api_token = prisma.apitoken.find_unique(
+    api_key = prisma.apitoken.find_unique(
         where={"id": tokenId}, include={"user": True}
     )
 
-    if api_token:
-        return {"success": True, "data": api_token}
+    if api_key:
+        return {"success": True, "data": api_key}
 
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -77,7 +77,7 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     name="Delete API token",
     description="Delete a specific API token",
 )
-async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
+async def delete_api_key(tokenId: str, token=Depends(JWTBearer())):
     """Delete api token endpoint"""
     try:
         prisma.apitoken.delete(where={"id": tokenId})

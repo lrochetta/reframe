@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 NNext, Co."
+__copyright__ = "Copyright © 2023 The Reframery, Co."
 
 # Standard Libraries
 from os import environ as os_env
@@ -30,7 +30,6 @@ class SerpTool(Tool):
             "api_key": SERP_API_KEY
         })
         result = search.get_dict()
-        # pprint(result)
 
         return result
 
