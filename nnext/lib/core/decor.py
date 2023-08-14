@@ -48,6 +48,8 @@ def with_cache(prefix, *args, **kwargs):
                     try:
                         # Attempt to load the cache value as a json.
                         result_dict = json.loads(cache_val)
+                        if 'result' not in result_dict:
+                            raise Exception('Cache value is not a result dict')
                         found_in_cache = True
                         return result_dict['result']
                     except Exception as e:
