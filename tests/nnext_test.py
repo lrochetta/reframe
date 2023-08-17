@@ -9,11 +9,11 @@ import numpy as np
 import pytest
 
 from nnext import NNextClient
-from nnext.conversions.common_types import Record
-from nnext.conversions.conversion import grpc_to_payload, json_to_value
-from nnext.client.http import Filter, FieldCondition, Range, PointStruct, HasIdCondition, PointIdsList, \
+from reframe.conversions.common_types import Record
+from reframe.conversions.conversion import grpc_to_payload, json_to_value
+from reframe.client.http import Filter, FieldCondition, Range, PointStruct, HasIdCondition, PointIdsList, \
     PayloadSchemaType, MatchValue, Distance, CreateAliasOperation, CreateAlias, OptimizersConfigDiff
-from nnext.client.uploader.grpc_uploader import payload_to_grpc
+from reframe.client.uploader.grpc_uploader import payload_to_grpc
 
 DIM = 100
 NUM_VECTORS = 1_000
@@ -458,8 +458,8 @@ def test_value_serialization():
 
 
 def test_serialization():
-    from nnext.client.grpc import PointStruct as PointStructGrpc
-    from nnext.client.grpc import PointId as PointIdGrpc
+    from reframe.client.grpc import PointStruct as PointStructGrpc
+    from reframe.client.grpc import PointId as PointIdGrpc
 
     point = PointStructGrpc(
         id=PointIdGrpc(num=1),

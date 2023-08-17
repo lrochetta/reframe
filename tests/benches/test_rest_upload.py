@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 
 from nnext import NNextClient
-from nnext.client.http import Distance
+from reframe.client.http import Distance
 
 COLLECTION_NAME = 'test_rest_upload'
 VECTOR_SIZE = 256

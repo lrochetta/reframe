@@ -1,4 +1,4 @@
-# <a href="https://nnext.ai/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="Aigent"></a>
+# <a href="https://reframe.is/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="Aigent"></a>
 
 ## About
 
@@ -49,4 +49,4 @@ pip install aigent
 
 ## Documentation
 
-More documentation is available here [https://nnext.ai/aigent/docs](https://nnext.ai/aigent/docs).:
+More documentation is available here [https://reframe.is/aigent/docs](https://reframe.is/aigent/docs).:

@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "nnext"
+name = "reframer"
 version = "0.0.1"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
-authors = ["NNext Team <pypi@nnext.ai>"]
+authors = ["Reframe Team <pypi@reframe.is>"]
 packages = [
-    { include = "nnext" }
+    { include = "reframe" }
 ]
 readme = "README.md"
-homepage = "https://docs.nnext.ai/"
-repository = "https://github.com/nnextai/nnext"
-keywords = ["nnext", "agents", "dataframes", "aigent", "client"]
+homepage = "https://reframe.is/docs/"
+repository = "https://github.com/peterwnjenga/aigent"
+keywords = ["reframe", "agents", "dataframes", "client"]
 
 
 [tool.poetry.dependencies]

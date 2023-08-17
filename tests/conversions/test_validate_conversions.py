@@ -15,7 +15,7 @@ def camel_to_snake(name):
 
 
 def test_conversion_completeness():
-    from nnext.client.http.models import models
+    from reframe.client.http.models import models
 
     print("")
 
@@ -25,7 +25,7 @@ def test_conversion_completeness():
         if (isinstance(cls, type) and issubclass(cls, BaseModel)) or (type(models.Match) is type(cls))
     ])
 
-    from nnext.client import grpc
+    from reframe.client import grpc
     grpc_classes = dict([
         (name, cls)
         for name, cls in grpc.__dict__.items()
@@ -34,7 +34,7 @@ def test_conversion_completeness():
 
     common_classes = set(http_classes).intersection(set(grpc_classes))
 
-    from nnext.conversions.conversion import GrpcToRest, RestToGrpc
+    from reframe.conversions.conversion import GrpcToRest, RestToGrpc
 
     grpc_to_rest_convert = dict(
         (method_name, method) for method_name, method
