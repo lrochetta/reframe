@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 The Reframery, Co."
+__copyright__ = "Copyright © 2023 Reframe AI, Co."
 
 # Standard Libraries
 import json
@@ -18,6 +18,7 @@ from fastapi.encoders import jsonable_encoder
 from slugify import slugify
 from uuid6 import uuid7
 
+from reframe.server.lib import sql_text
 from reframe.server.lib.api_key import generate_api_key
 from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
 from reframe.server.lib.db_connection import Database
@@ -37,32 +38,45 @@ async def create_namespace(request: Request, namespace: Namespace):
     """Agents endpoint"""
     try:
         namespace_id = uuid7()
-        namespace.slug = slugify(namespace.slug, separator='_')
-        trace_db_name = f"trace_{str(namespace_id).split('-')[3]}_{namespace.slug}"
+        # Check that the slug is valid. It should be in snake case, alphanumeric, and lowercase.
+        if slugify(namespace.slug, separator='_') != namespace.slug:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid slug '{namespace.slug}'. Must be lowercase, alphanumeric, and snake case"
+            )
 
         __namespace = {
             **namespace.dict(),
-            "_id" : str(namespace_id),
-            "trace_db_params": {
-                "database": trace_db_name,
-            }
+            "_id" : str(namespace_id)
         }
 
-        namespace.data_db = Database(**namespace.data_db_params)
+        try:
+            namespace.data_db = Database(**namespace.data_db_params)
+            await namespace.data_db.connect()
+            request.app.state.data_db[namespace_id] = namespace.data_db
 
-        await namespace.data_db.connect()
-        request.app.state.data_db[namespace_id] = namespace.data_db
+            namespace.trace_db = Database(**namespace.trace_db_params)
+            await namespace.trace_db.connect()
+            request.app.state.trace_db[namespace_id] = namespace.trace_db
+        except Exception as e:
+            logger.error(f"Error connecting to data database: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Error connecting to data database: {e}"
+            )  from None
+
 
         await request.app.state.meta_db.execute(
             """ 
             INSERT INTO namespace (_id, slug, name, data_db_params, trace_db_params)
-            VALUES (%(_id)s, %(slug)s, %(name)s, %(data_db_params)s, %(trace_db_params)s)
+            VALUES (%(id_)s, %(slug)s, %(name)s, %(data_db_params)s, %(trace_db_params)s)
             RETURNING _id, slug, name
-            """, __namespace)
+            """, namespace.dict())
 
-        logger.info(f"Created new namespace: {pformat(__namespace)}")
+        logger.info(f"Created new namespace: {pformat({k : namespace.dict()[k] for k in ['id_', 'name', 'slug']})}")
 
         api_key = generate_api_key()
+        namespace.api_key = api_key
         await request.app.state.meta_db.execute(
             """
             INSERT INTO api_key (_id, key, namespace_id, name)
@@ -77,149 +91,30 @@ async def create_namespace(request: Request, namespace: Namespace):
 
         logger.info("Created new API Key")
 
-        await request.app.state.meta_db.execute(
-            """
-            CREATE DATABASE {db_name}
-            """.format(db_name=trace_db_name)
-        )
-        logger.info(f"Created new database: {trace_db_name}")
-
-        await request.app.state.meta_db.execute(
-            """
-            GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {db_user}
-            """.format(db_name=trace_db_name, db_user="postgres")
-        , {})
-
         # Connect to the new database and create the trace schema
-        trace_db = Database(database=trace_db_name)
-        await trace_db.connect()
-
-        request.app.state.trace_db[trace_db_name] = trace_db
-
-        await trace_db.execute(
-            """
-            CREATE SCHEMA IF NOT EXISTS trace
-            """
-        )
-
-        await trace_db.execute(
-            """
-            CREATE EXTENSION IF NOT EXISTS moddatetime
-            """
-        )
+        await namespace.trace_db.execute("CREATE SCHEMA IF NOT EXISTS trace")
 
 
-        table_name = 'trace'
-        await trace_db.execute(
-            """
-            CREATE TABLE trace.{table_name} (
-                _id             uuid                            default gen_random_uuid()   not null    constraint {table_name}_pk primary key,
-                _cr             timestamp   with time zone      default now()               not null,
-                _up             timestamp   with time zone      default now()               not null,
-                parent_id       uuid,
-                entry           jsonb   not null,
-                level           varchar(10) not null,
-                job_id          uuid,
-                correlation_id  uuid
-            );
-            
-            CREATE INDEX {table_name}_id_idx ON trace.{table_name} (_id);
-            """.format(table_name=table_name)
-        )
-        logger.info(f"Created new table: trace.{table_name}")
+        await namespace.trace_db.execute("CREATE EXTENSION IF NOT EXISTS moddatetime;")
 
-        table_name = 'job'
-        await trace_db.execute(
-            """
-            CREATE TABLE trace.{table_name} (
-                _id             uuid                            default gen_random_uuid()   not null    constraint {table_name}_pk primary key,
-                _cr             timestamp   with time zone      default now()               not null,
-                _up             timestamp   with time zone      default now()               not null,
-                prompt                jsonb                                                         not null,
-                prompt_format_version varchar(50)                                                   not null,
-                initiator_id          uuid                                                          not null,
-                initiator_type        varchar(25)                                                   not null,
-                engine_vs             varchar(50)              default 'v0.0.01'::character varying not null,
-                read_cache            boolean                  default true                         not null,
-                write_cache           boolean                  default true                         not null,
-                table_name              varchar(200)    not null,
-                input_params            jsonb           not null,
-                output_params           jsonb           not null
-            );
 
-            CREATE INDEX {table_name}_id_idx ON trace.{table_name} (_id);
-            """.format(table_name=table_name)
-        )
-        logger.info(f"Created new table: trace.{table_name}")
+        # Create the trace tables
+        tables = {
+            'trace': sql_text.CREATE_TABLE_TRACE,
+            'job': sql_text.CREATE_TABLE_JOB,
+            'thread': sql_text.CREATE_TABLE_THREAD,
+            'agent': sql_text.CREATE_TABLE_AGENT,
+            'tool': sql_text.CREATE_TABLE_TOOL,
+        }
 
-        table_name = 'thread'
-        await trace_db.execute(
-            """
-            CREATE TABLE trace.{table_name} (
-                _id             uuid                            default gen_random_uuid()   not null    constraint {table_name}_pk primary key,
-                _cr             timestamp   with time zone      default now()               not null,
-                _up             timestamp   with time zone      default now()               not null,
-                elem_id          uuid,
-                group_id          uuid,
-                dataframe_id          uuid,
-                column_id          uuid
-            );
-            
-            CREATE INDEX {table_name}_id_idx ON trace.{table_name} (_id);
-            """.format(table_name=table_name)
-        )
-        logger.info(f"Created new table: trace.{table_name}")
+        for table_name, table_sql in tables.items():
+            await namespace.trace_db.execute(table_sql.format(table_name=table_name))
+            logger.info(f"Created new table: {table_name}")
 
-        table_name = 'agent'
-        await trace_db.execute(
-            """
-            CREATE TABLE {table_name} (
-                _id             uuid                            default gen_random_uuid()   not null    constraint {table_name}_pk primary key,
-                _cr             timestamp   with time zone      default now()               not null,
-                _up             timestamp   with time zone      default now()               not null,
-                name                varchar(50)                                             not null,
-                slug                varchar(50)                                             not null unique,
-                engine_vs             varchar(50)              default 'v0.0.01'::character varying not null,
-                read_cache            boolean                  default true                         not null,
-                write_cache           boolean                  default true                         not null
-            );
+        logger.info(f"Done initializing namespace: {pformat({k : namespace.dict()[k] for k in ['id_', 'name', 'slug']})}")
 
-            CREATE INDEX {table_name}_id_idx ON {table_name} (_id);
-            """.format(table_name=table_name)
-        )
-        logger.info(f"Created new table: public.{table_name}")
 
-        table_name = 'tool'
-        await trace_db.execute(
-            """
-            CREATE TABLE {table_name} (
-                _id             uuid                            default gen_random_uuid()   not null    constraint {table_name}_pk primary key,
-                _cr             timestamp   with time zone      default now()               not null,
-                _up             timestamp   with time zone      default now()               not null,
-                name                varchar(50)                                             not null,
-                slug                varchar(50)                                             not null unique,
-                engine_vs             varchar(50)              default 'v0.0.01'::character varying not null,
-                read_cache            boolean                  default true                         not null,
-                write_cache           boolean                  default true                         not null
-            );
-            
-            CREATE INDEX {table_name}_id_idx ON {table_name} (_id);
-            """.format(table_name=table_name)
-        )
-        logger.info(f"Created new table: public.{table_name}")
-
-        request.app.state.trace_db[trace_db_name] = trace_db
-
-        logger.info(f"Done initializing namespace: {namespace}")
-
-        __namespace.pop("db_name", None)
-        __namespace.pop("trace_db", None)
-        __namespace.pop("trace_db_params", None)
-        __namespace.pop("data_db", None)
-        __namespace.pop("data_db_params", None)
-        __namespace.pop("id_", None)
-        __namespace["api_key"] = api_key
-        return {"success": True, "data": __namespace}
+        return {"success": True, "data": {k : namespace.dict()[k] for k in ['id_', 'name', 'slug', 'api_key']}}
     except Exception as e:
         logger.exception(e)
         raise HTTPException(

@@ -1,30 +1,23 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 The Reframery, Co."
+__copyright__ = "Copyright © 2023 Reframe AI, Co."
 
 # Standard Libraries
 import json
 from pprint import pprint, pformat
 from time import time
-import logging
 
-import uuid as uuid
+# External Libraries
 from psycopg import sql
-import psycopg
-from decouple import config
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from uuid6 import uuid7
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated, Optional
 from loguru import logger
 
 from reframe.server.lib.db_connection import Database
 from reframe.server.lib.db_models.namespace import Namespace, Job
-from reframe.server.lib.db_session import database_instance
-from reframe.server.lib.agents.base import AgentBase
-from reframe.server.lib.agents.factory import AgentFactory
 from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
-from reframe.server.lib.db_models.agent import Agent, PredictAgent
+from reframe.server.lib.db_models.agent import Agent
 from reframe.server.lib.prisma import prisma
 
 router = APIRouter()
@@ -39,7 +32,6 @@ red_stream = redis.StrictRedis(
 
 from fastapi import Request, HTTPException, Security
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel
 
 
 api_key_header = APIKeyHeader(name="X-API-KEY")
@@ -196,118 +188,6 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
 
 
 @router.post(
-    "/agent/react/run",
-    name="Prompt agent",
-    description="Invoke a specific agent",
-)
-async def run_react_agent(
-    # agentId: str,
-    body: dict,
-    background_tasks: BackgroundTasks
-):
-
-    """Agent detail endpoint"""
-    sql_query_text = body.get("sql_query_text")
-    table_name = body.get("table")
-    output_column = body.get("output_column")
-    prompt = body.get("prompt")
-
-    try:
-        print("Creating job...")
-        job = prisma.job.create(
-            {
-                "id": str(uuid7()),
-            }
-        )
-
-        print(job)
-
-    except Exception as e:
-        logging.exception(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
-        )
-
-    # PLAT DATABASE.
-    # For client data that displays on the platform.
-    PLAT_DB_HOST = env.get('PLAT_DB_HOST', 'localhost')
-    PLAT_DB_USER = env.get('PLAT_DB_USER', 'postgres')
-    PLAT_DB_PASS = env.get('PLAT_DB_PASS')
-    PLAT_DB_NAME = env.get('PLAT_DB_NAME')
-
-    _sql_obj= sql.SQL(sql_query_text)
-
-    prompt_text = ''
-    for prompt_obj in prompt:
-        for child in prompt_obj['children']:
-            if child.get('type') == 'mention':
-                prompt_text += "@" + child['column']
-            else:
-                prompt_text += child['text']
-
-    logger.debug(f"Prompt text: '{prompt_text}'")
-
-    async with await psycopg.AsyncConnection.connect(
-        host=PLAT_DB_HOST,
-        user=PLAT_DB_USER,
-        password=PLAT_DB_PASS,
-        dbname=PLAT_DB_NAME,
-        autocommit=True
-    ) as plat_db_conn:
-        print("Connected to DBx", plat_db_conn)
-        async with plat_db_conn.cursor() as acur:
-            logger.info(f"Connected to DB. Running query {_sql_obj}")
-            await acur.execute(_sql_obj)
-
-            async for record in acur:
-                print(record)
-
-                stream_key = "nnext::instream::agent->browser"
-                stream_message = {
-                    'ts': time(),
-                    'payload': json.dumps({
-                        "_id": str(record[0]),
-                        "url": record[1]
-                    }),
-                    'job_id': str(job.id),
-                    "table_name": table_name,
-                    "prompt": json.dumps(prompt),
-                    "prompt_text": prompt_text,
-                    "output_column": output_column,
-                }
-                red_stream.xadd(stream_key, stream_message)
-                logger.debug(f"Added elem to stream {stream_key}. Elem: {stream_message}")
-
-    return {"status": "success"}
-
-    agent_base = AgentBase(agent=agent)
-    agent_strategy = AgentFactory.create_agent(agent_base)
-    agent_executor = agent_strategy.get_agent()
-    result = agent_executor(agent_base.process_payload(payload=input))
-    output = result.get("output") or result.get("result")
-    background_tasks.add_task(
-        agent_base.create_agent_memory,
-        agentId,
-        "HUMAN",
-        json.dumps(input.get("input")),
-    )
-    background_tasks.add_task(
-        agent_base.create_agent_memory, agentId, "AI", output
-    )
-
-    if config("NNEXT_TRACING"):
-        trace = agent_base._format_trace(trace=result)
-        background_tasks.add_task(agent_base.save_intermediate_steps, trace)
-
-        return {"success": True, "data": output, "trace": json.loads(trace)}
-
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Agent with id: {agentId} not found",
-    )
-
-@router.post(
     "/agent/prompt/single_action_chat_agent/",
     name="Prompt agent",
     description="Invoke a single action chat agent",
@@ -315,8 +195,7 @@ async def run_react_agent(
 async def single_action_chat_agent(
     request: Request,
     body: dict,
-    namespace: Annotated[Namespace, Depends(get_api_key)],
-    api_key: str = Security(get_api_key)
+    namespace: Annotated[Namespace, Depends(get_api_key)]
 ):
 
     """Agent detail endpoint"""
@@ -350,8 +229,6 @@ async def single_action_chat_agent(
     )
 
     try:
-        print(namespace.trace_db)
-        print(namespace.data_db)
         await namespace.trace_db.execute(
             """
             INSERT INTO trace.job (_id, prompt, table_name, prompt_format_version, initiator_id, initiator_type,
@@ -394,7 +271,6 @@ async def single_action_chat_agent(
     # Fetch items from DB and add to stream
     items = await namespace.data_db.fetch_list(
         sql_query_text, {})
-    pprint(items)
 
     record_count = 0
     for record in items:
@@ -426,7 +302,7 @@ async def single_action_chat_agent(
             "output_column": output_column,
         }
         red_stream.xadd(stream_key, stream_message)
-        logger.debug(f"Added elem to stream {stream_key}. Elem: {pformat(stream_message)}")
+        logger.opt(ansi=True).debug(f"Added elem to stream <b>{stream_key}</b>. Elem: <green>{pformat(stream_message)}</green>")
         record_count += 1
     logger.info(f"Added {record_count} elems to stream {stream_key}")
 

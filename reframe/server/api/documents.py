@@ -3,7 +3,6 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
-from reframe.server.lib.documents import upsert_document, valid_ingestion_types
 from reframe.server.lib.db_models.document import Document
 from reframe.server.lib.prisma import prisma
 

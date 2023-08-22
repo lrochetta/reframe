@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 The Reframery, Co."
+__copyright__ = "Copyright © 2023 Reframe AI, Co."
 
 # Standard Libraries
 
@@ -21,6 +21,7 @@ class Namespace(BaseModel):
     id_: UUID = Field(alias="_id", default_factory=uuid7)
     slug: str
     name: str
+    api_key: str | None = None
     trace_db: Optional[Database] = None
     trace_db_params: Optional[Dict[str, str]] = {}
     data_db: Optional[Database] = None

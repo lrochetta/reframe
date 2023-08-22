@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 The Reframery, Co."
+__copyright__ = "Copyright © 2023 Reframe AI, Co."
 
 # Standard Libraries
 
@@ -27,9 +27,14 @@ serp_agent = SingleActionChatAgent(
         "output": "serp_content"
     }],
     chat_template = [
-        {"role": "system", "content": "Given the following content. Return the information asked without generating supperfluous text. Answer with as few words as possible."},
+        {"role": "system", "content": """
+            Given the following content. Return the information asked without
+            generating supperfluous text. Answer with as few words as possible.
+            """
+         },
         {"role": "user", "content": "{{serp_content}}"},
-        {"role": "assistant", "content": "Thanks. I have understood the context. Please provide the prompt"},
+        {"role": "assistant",
+         "content": "Thanks. I have understood the context. Please provide the prompt"},
         {"role": "user", "content": "{{llm_prompt}}"}
     ],
     llm=llm
