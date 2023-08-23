@@ -1,7 +1,5 @@
 __version__ = '0.1.0'
 
-from reframe.client import NNextClient
-
 
 def _in_ipython() -> bool:
     """

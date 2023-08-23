@@ -20,10 +20,10 @@ from uuid6 import uuid7
 
 from reframe.server.lib import sql_text
 from reframe.server.lib.api_key import generate_api_key
-from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
+# from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
 from reframe.server.lib.db_connection import Database
 from reframe.server.lib.db_models.namespace import Namespace
-from reframe.server.lib.prisma import prisma
+# from reframe.server.lib.prisma import prisma
 import psycopg
 
 # Global Variables
@@ -147,7 +147,7 @@ async def list_agents():
 
 
 @router.get("/namespace/{namespace_id}/", name="Get namespace", description="Get a specific namespace")
-async def read_namespace(namespace_id: str, token=Depends(JWTBearer())):
+async def read_namespace(namespace_id: str):
     """Agent detail endpoint"""
     agent = prisma.agent.find_unique(where={"id": namespace_id}, include={"prompt": True})
 
@@ -163,7 +163,7 @@ async def read_namespace(namespace_id: str, token=Depends(JWTBearer())):
 @router.delete(
     "/namespace/{namespace_id}/", name="Delete namespace", description="Delete a specific namespace"
 )
-async def delete_agent(namespace_id: str, token=Depends(JWTBearer())):
+async def delete_agent(namespace_id: str):
     """Delete agent endpoint"""
     try:
         prisma.agentmemory.delete_many(where={"namespace_id": namespace_id})
@@ -180,7 +180,7 @@ async def delete_agent(namespace_id: str, token=Depends(JWTBearer())):
 @router.patch(
     "/agent/{namespace_id}/", name="Patch namespace", description="Patch a specific namespace"
 )
-async def patch_namespace(namespace_id: str, body: dict, token=Depends(JWTBearer())):
+async def patch_namespace(namespace_id: str, body: dict):
     """Patch agent endpoint"""
     try:
         prisma.agent.update(data=body, where={"id": namespace_id})

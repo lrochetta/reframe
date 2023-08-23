@@ -9,7 +9,6 @@ __copyright__ = "Copyright © 2023 Reframe AI, Co."
 from loguru import logger
 
 # Internal Libraries
-from reframe.server.lib.prisma import prisma
 
 # Global Variables
 

@@ -16,9 +16,9 @@ from loguru import logger
 
 from reframe.server.lib.db_connection import Database
 from reframe.server.lib.db_models.namespace import Namespace, Job
-from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
+# from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
 from reframe.server.lib.db_models.agent import Agent
-from reframe.server.lib.prisma import prisma
+# from reframe.server.lib.prisma import prisma
 
 router = APIRouter()
 from os import environ as os_env
@@ -141,7 +141,7 @@ async def read_agents():
 
 
 @router.get("/agent/{agentId}", name="Get agent", description="Get a specific agent")
-async def read_agent(agentId: str, token=Depends(JWTBearer())):
+async def read_agent(agentId: str):
     """Agent detail endpoint"""
     agent = prisma.agent.find_unique(where={"id": agentId}, include={"prompt": True})
 
@@ -157,7 +157,7 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
 @router.delete(
     "/agent/{agentId}", name="Delete agent", description="Delete a specific agent"
 )
-async def delete_agent(agentId: str, token=Depends(JWTBearer())):
+async def delete_agent(agentId: str):
     """Delete agent endpoint"""
     try:
         prisma.agentmemory.delete_many(where={"agentId": agentId})
@@ -174,7 +174,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 @router.patch(
     "/agent/{agentId}", name="Patch agent", description="Patch a specific agent"
 )
-async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
+async def patch_agent(agentId: str, body: dict):
     """Patch agent endpoint"""
     try:
         prisma.agent.update(data=body, where={"id": agentId})
