@@ -1,4 +1,4 @@
-# <a href="https://reframe.is/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="Aigent"></a>
+# <a href="https://reframe.is/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="Reframe"></a>
 
 ## About
 
@@ -48,4 +48,4 @@ pip install reframer
 
 ## Documentation
 
-More documentation is available here: [https://reframe.is/docs](https://link.reframe.is/github-docs)
+More documentation is available here: [https://reframe.is/docs](https://to.reframe.is/f0Ms)
