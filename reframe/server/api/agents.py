@@ -15,7 +15,7 @@ from typing import Annotated, Optional
 from loguru import logger
 
 from reframe.server.lib.db_connection import Database
-from reframe.server.lib.db_models.namespace import Namespace, Job
+from reframe.server.lib.db_models.namespace import Namespace, Job, PROCESSING_STATUS
 # from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
 from reframe.server.lib.db_models.agent import Agent
 # from reframe.server.lib.prisma import prisma
@@ -60,6 +60,8 @@ async def get_api_key(request: Request, api_key_header: str = Security(api_key_h
         db_namespace = await request.app.state.meta_db.fetch_one(
             """SELECT * FROM namespace WHERE _id = %(_id)s""",
             {'_id': namespace_id})
+
+        print(api_key_header, namespace_id, db_namespace)
 
         # Connect to the namespace and create the trace schema
         if namespace_id not in request.app.state.trace_db:
@@ -208,9 +210,7 @@ async def single_action_chat_agent(
     prompt_text = body.get("prompt_text")
     input_column = body.get("input_column")
 
-    _sql_obj= sql.SQL(sql_query_text)
-
-    logger.debug(f"Prompt text: '{prompt_text}'")
+    logger.debug(f"Prompt text: '{prompt_text}' Input column: '{input_column}' Output column: '{output_column}' sql_query_text: '{sql_query_text}'")
 
     job = Job(
         prompt=json.dumps(prompt),
@@ -222,6 +222,7 @@ async def single_action_chat_agent(
         table_name=table_name,
         input_params=json.dumps({
             "sql_query_text": sql_query_text,
+            "input_column": input_column,
         }),
         output_params=json.dumps({
             "output_column": output_column,
@@ -277,8 +278,8 @@ async def single_action_chat_agent(
 
         if is_browser_agent:
             payload = {
-                "_id": str(record[0]),
-                "url": record[1]
+                "_id": str(record['_id']),
+                "url": record[input_column]
             }
         elif is_serp_agent:
             serp_query = prompt_text.split(("."))[0].replace(activation_command, "")
@@ -286,7 +287,7 @@ async def single_action_chat_agent(
             serp_query = serp_query.strip()
 
             payload = {
-                "_id": str(record[0]),
+                "_id": str(record['_id']),
                 "query": serp_query
             }
         else:
@@ -296,14 +297,25 @@ async def single_action_chat_agent(
             'ts': time(),
             'payload': json.dumps(payload),
             'job_id': str(job.id_),
+            'namespace_id': str(namespace.id_),
             "table_name": table_name,
             "prompt": json.dumps(prompt),
             "prompt_text": prompt_text,
             "output_column": output_column,
         }
+
+        # Update status to QUEUED
+        item = await namespace.data_db.fetch_one(
+            f'SELECT * FROM {table_name} WHERE _id = %(_id)s', {'_id': record['_id']})
+        elem = json.loads(item[output_column])
+        elem['status'] = PROCESSING_STATUS.QUEUED.value
+        item = await namespace.data_db.execute(
+            f'UPDATE {table_name} SET {output_column} = %(elem)s WHERE _id = %(_id)s',
+            {'_id': record['_id'], 'elem': json.dumps(elem)})
+
         red_stream.xadd(stream_key, stream_message)
         logger.opt(ansi=True).debug(f"Added elem to stream <b>{stream_key}</b>. Elem: <green>{pformat(stream_message)}</green>")
         record_count += 1
     logger.info(f"Added {record_count} elems to stream {stream_key}")
 
-    return {"status": "success"}
+    return {"status": "success", 'data': job.dict()}

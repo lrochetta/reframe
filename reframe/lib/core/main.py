@@ -24,8 +24,11 @@ import openai
 from reframe.lib.core import RedisStreamProcessor
 from reframe.lib.models.chat import openai_chat
 from reframe.lib.utils import fmt_payload
+from reframe.server.lib.db_connection import Database
 
 # Global Variables
+from reframe.server.lib.db_models.namespace import PROCESSING_STATUS, Namespace
+
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
 TASK_EXPIRATION_DURATION = 60 * 60 * 24 * 2 # 48 Hours
 
@@ -50,6 +53,11 @@ class SingleActionChatAgent(RedisStreamProcessor):
         self.tool_graph = tool_graph
         self.tool_list = tool_list
 
+        self.trace_db = {}
+        self.data_db = {}
+        self.namespace = {}
+        self.reframe_db = Database()
+
         for _template in chat_template:
             _template["content"] = jinja_env.from_string(_template["content"])
         self.chat_template = chat_template
@@ -57,30 +65,17 @@ class SingleActionChatAgent(RedisStreamProcessor):
         super().__init__(instream_key=f"agent->{self.name}")
 
         self.new_event_loop = asyncio.new_event_loop()
-        self.new_event_loop.run_until_complete(self.connect_to_db())
-        logger.info(f"Initialized NNextAgent [name={name} invoke_commands={invoke_commands}]")
+        # self.new_event_loop.run_until_complete(self.connect_to_db())
+        logger.info(f"Initialized Reframe Agent [name={name} invoke_commands={invoke_commands}]")
 
     def __del__(self):
-        logger.info(f"Deconstructed NNextAgent [name={self.name}]")
+        logger.info(f"Deconstructed Reframe Agent [name={self.name}]")
         self.new_event_loop.stop()
-        asyncio.run(self.disconnect_db())
+        # asyncio.run(self.disconnect_db())
 
     async def connect_to_db(self):
-        PLAT_DB_HOST = env.get('PLAT_DB_HOST', 'localhost')
-        PLAT_DB_USER = env.get('PLAT_DB_USER', 'postgres')
-        PLAT_DB_PASS = env.get('PLAT_DB_PASS')
-        PLAT_DB_NAME = env.get('PLAT_DB_NAME')
-
-        self.data_db_conn = await psycopg.AsyncConnection.connect(
-            host=PLAT_DB_HOST,
-            user=PLAT_DB_USER,
-            password=PLAT_DB_PASS,
-            dbname=PLAT_DB_NAME,
-            autocommit=True
-        )
-
-        self.data_db_cursor = self.data_db_conn.cursor()
-        logger.debug(f"Connected to Platform DB {PLAT_DB_HOST}/{PLAT_DB_NAME}")
+        self.reframe_db = Database()
+        await self.reframe_db.connect()
 
     async def disconnect_db(self):
         await self.data_db_conn.close()
@@ -117,6 +112,30 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
         return last_processed_message_id
 
+    async def get_namespace(self, namespace_id):
+        if namespace_id in self.namespace:
+            return self.namespace[namespace_id]
+
+        sql = f"SELECT * FROM namespace WHERE _id = '{namespace_id}'"
+
+        db_namespace = await self.reframe_db.fetch_one(sql)
+
+        if db_namespace is None:
+            raise Exception(f"Namespace {namespace_id} not found")
+
+        logger.debug(f'Got namespace {namespace_id} from DB')
+        namespace = Namespace(**db_namespace)
+
+        namespace.data_db  = Database(**namespace.data_db_params)
+        await namespace.data_db.connect()
+
+        namespace.trace_db  = Database(**namespace.trace_db_params)
+        await namespace.trace_db.connect()
+
+        self.namespace[namespace_id] = namespace
+
+        return namespace
+
     # Send jobs to the agent tools.
     async def sow(self):
         last_processed_message_id = self.get_last_processed_message_id()
@@ -139,6 +158,19 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 output_column = message_data['output_column']
                 table_name = message_data['table_name']
                 correlation_id = payload.get('_id')
+                namespace_id = message_data.get('namespace_id')
+
+                namespace = await self.get_namespace(namespace_id)
+
+                # Update status to PROCESSING
+                item = await namespace.data_db.fetch_one(
+                    f'SELECT * FROM {table_name} WHERE _id = %(_id)s', {'_id': correlation_id})
+                elem = json.loads(item[output_column])
+                elem['status'] = PROCESSING_STATUS.PROCESSING.value
+                item = await namespace.data_db.execute(
+                    f'UPDATE {table_name} SET {output_column} = %(elem)s WHERE _id = %(_id)s',
+                    {'_id': correlation_id, 'elem': json.dumps(elem)})
+                logger.debug(f"Updated status to PROCESSING for correlation_id={correlation_id} in table={table_name}")
 
                 message = {
                     'payload': json.dumps(payload),
@@ -146,7 +178,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
                     'agent': self.name,
                 }
 
-                logger.debug(f"Running tool->{tool_name} with payload->{(pformat(message))}")
+                logger.debug(f"Running NS: {namespace_id} tool->{tool_name} with payload->{(pformat(message))}")
 
                 red_stream.xadd(tool_stream_key, message)
 
@@ -163,7 +195,8 @@ class SingleActionChatAgent(RedisStreamProcessor):
                     json.dumps({
                         "prompt_text": prompt_text,
                         "output_column": output_column,
-                        "table_name": table_name
+                        "table_name": table_name,
+                        "namespace_id": namespace_id,
                     }, default=str),
                     ex=CACHE_EXPIRATION_DURATION
                 )
@@ -267,7 +300,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 response = await openai_chat(formated_template, read_cache=False, write_cache=True)
                 # TODO: Check that the result is indeed a success.
                 db_result = {
-                    "status": "SUCCESS",
+                    "status": PROCESSING_STATUS.SUCCESS.value,
                     "result": response
                 }
 
@@ -282,28 +315,21 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 # Store results in Redis and Postgres.
                 output_column = llm_prompt.get('output_column')
                 table_name = llm_prompt.get('table_name')
+                namespace_id = llm_prompt.get('namespace_id')
+                namespace = await self.get_namespace(namespace_id)
 
                 # TODO
                 # Probably call a on_db_write hook here.
 
-                _sql_stmt = sql.SQL(
-                    """
-                    INSERT INTO {} (_id, {})
-                    VALUES (%(_id)s, %(result)s)
-                    ON CONFLICT (_id)
-                    DO UPDATE SET
-                    {}=EXCLUDED.{};
-                    """
-                ).format(
-                    sql.Identifier(table_name),
-                    sql.Identifier(output_column),
-                    sql.Identifier(output_column),
-                    sql.Identifier(output_column)
-                )
-
                 try:
                     logger.info(f"Inserting into table {table_name}. {output_column}⇨ {pformat(db_result)}")
-                    await self.data_db_cursor.execute(_sql_stmt, {
+                    await namespace.data_db.execute(f"""
+                        INSERT INTO {table_name} (_id, {output_column})
+                        VALUES (%(_id)s, %(result)s)
+                        ON CONFLICT (_id)
+                        DO UPDATE SET
+                        {output_column}=EXCLUDED.{output_column};"""
+                    , {
                         "_id": correlation_id,
                         "result": json.dumps(db_result)
                     })

@@ -7,11 +7,11 @@ __copyright__ = "Copyright © 2023 Reframe AI, Co."
 import collections
 import itertools
 import json
-from typing import Any, Dict, Tuple, List
 from os import environ as os_env
+from typing import Any, Dict, Tuple, List
+from contextlib import contextmanager, asynccontextmanager
 
 from pprint import pformat
-from psycopg import sql as sqlparams
 
 # External Libraries
 import asyncpg
@@ -45,23 +45,23 @@ def pyformat2psql(query: str, named_args: Dict[str, Any]) -> Tuple[str, List[Any
 
 @dataclass
 class Database():
-    database: str = os_env.get('REFRAME_META_DB_NAME')
+    database: str = os_env.get('REFRAME_META_DB_NAME', 'postgres')
     host: str = os_env.get('REFRAME_META_DB_HOST', "localhost")
     user: str = os_env.get('REFRAME_META_DB_USER', 'postgres')
     password: str = os_env.get('REFRAME_META_DB_PASS')
     port: str = os_env.get('REFRAME_META_DB_POST')
 
-
     def __init__(self,
-                 host: str=None, user: str = None,
-                 password: str=None, port: str=None,
+                 host: str = None, user: str = None,
+                 password: str = None, port: str = 5432,
                  database: str = None) -> None:
+
         # Set self.host to the value passed in or default to checking environment variable
-        self.host = host or os_env.get('REFRAME_META_DB_HOST', "localhost")
-        self.user = user or os_env.get('REFRAME_META_DB_USER', 'postgres')
-        self.password = password or os_env.get('REFRAME_META_DB_PASS')
-        self.port = port or os_env.get('REFRAME_META_DB_POST')
-        self.database = database or os_env.get('REFRAME_META_DB_NAME')
+        self.host = host or self.host
+        self.user = user or self.user
+        self.password = password or self.password
+        self.port = port or self.port
+        self.database = database or self.database
         self._cursor = None
 
         self._connection_pool = None
@@ -83,69 +83,78 @@ class Database():
                 logger.debug(f"Connected to database {self}")
             except Exception as e:
                 logger.exception(e)
-                raise e
+
+    @asynccontextmanager
+    async def transaction(self) -> asyncpg.Record:
+        if not self._connection_pool:
+            await self.connect()
+
+        self.con = await self._connection_pool.acquire()
+        yield self.con
+        await self._connection_pool.release(self.con)
 
     async def fetch_list(self, query: str, params: dict = {}) -> list[asyncpg.Record]:
-            if not self._connection_pool:
-                await self.connect()
-            else:
-                self.con = await self._connection_pool.acquire()
-                try:
-                    new_query, positional_args = pyformat2psql(query, params)
-                    result = await self.con.fetch(new_query, *positional_args)
-                    return result
-                except Exception as e:
-                    logger.exception(e)
-                finally:
-                    await self._connection_pool.release(self.con)
+        if not self._connection_pool:
+            await self.connect()
+
+        self.con = await self._connection_pool.acquire()
+        try:
+            new_query, positional_args = pyformat2psql(query, params)
+            result = await self.con.fetch(new_query, *positional_args)
+            return result
+        except Exception as e:
+            logger.exception(e)
+        finally:
+            await self._connection_pool.release(self.con)
 
     async def fetch_one(self, query: str, params: dict = {}) -> asyncpg.Record:
         if not self._connection_pool:
             await self.connect()
-        else:
-            self.con = await self._connection_pool.acquire()
-            try:
-                new_query, positional_args = pyformat2psql(query, params)
-                result = await self.con.fetchrow(new_query, *positional_args)
-                return result
-            except Exception as e:
-                logger.exception(e)
-            finally:
-                await self._connection_pool.release(self.con)
+
+        self.con = await self._connection_pool.acquire()
+        try:
+            new_query, positional_args = pyformat2psql(query, params)
+            result = await self.con.fetchrow(new_query, *positional_args)
+            return result
+        except Exception as e:
+            logger.exception(e)
+        finally:
+            await self._connection_pool.release(self.con)
 
     async def execute(self, query: str, params: dict = {}) -> asyncpg.Record:
         if not self._connection_pool:
             await self.connect()
-        else:
-            self.con = await self._connection_pool.acquire()
-            try:
-                new_query, positional_args = pyformat2psql(query, params)
-                result = await self.con.execute(new_query, *positional_args)
-                return result
-            except asyncpg.exceptions.UndefinedColumnError as undefined_column_error:
-                logger.error(f"""
-                Error: {undefined_column_error}
-                Query: {new_query}
-                """)
-                raise undefined_column_error
-            except asyncpg.exceptions.NotNullViolationError as not_null_violation_error:
-                logger.error(f""" NotNullViolationError↵
-                Error: {not_null_violation_error}
+
+        self.con = await self._connection_pool.acquire()
+        try:
+            new_query, positional_args = pyformat2psql(query, params)
+            result = await self.con.execute(new_query, *positional_args)
+            return result
+        except asyncpg.exceptions.UndefinedColumnError as undefined_column_error:
+            logger.error(f"""
+            Error: {undefined_column_error}
+            Query: {new_query}
+            """)
+            raise undefined_column_error
+        except asyncpg.exceptions.NotNullViolationError as not_null_violation_error:
+            logger.error(f""" NotNullViolationError↵
+            Error: {not_null_violation_error}
+            Query: {new_query}
+            Params: {positional_args}
+            """)
+            raise not_null_violation_error
+        except asyncpg.exceptions.DataError as data_error:
+            logger.error(f""" DataError↵
+                Error: {data_error}
                 Query: {new_query}
                 Params: {positional_args}
                 """)
-                raise not_null_violation_error
-            except asyncpg.exceptions.DataError as data_error:
-                logger.error(f""" DataError↵
-                    Error: {data_error}
-                    Query: {new_query}
-                    Params: {positional_args}
-                    """)
-                raise data_error
-            except Exception as e:
-                logger.exception(e)
-            finally:
-                await self._connection_pool.release(self.con)
+            raise data_error
+        except Exception as e:
+            logger.exception(e)
+            raise e
+        finally:
+            await self._connection_pool.release(self.con)
 
     def __str__(self):
         connection = {
@@ -156,5 +165,8 @@ class Database():
             'database': self.database
         }
         return f'{pformat(connection)}'
+
+    def to_url_str(self):
+        return f'postgresql://{self.user}:{self.password}@{self.host}/{self.database}'
 
 
