@@ -20,11 +20,8 @@ from uuid6 import uuid7
 
 from reframe.server.lib import sql_text
 from reframe.server.lib.api_key import generate_api_key
-# from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
 from reframe.server.lib.db_connection import Database
 from reframe.server.lib.db_models.namespace import Namespace
-# from reframe.server.lib.prisma import prisma
-import psycopg
 
 # Global Variables
 router = APIRouter()
@@ -37,7 +34,6 @@ class Serial(dict):
 async def create_namespace(request: Request, namespace: Namespace):
     """Agents endpoint"""
     try:
-        namespace_id = uuid7()
         # Check that the slug is valid. It should be in snake case, alphanumeric, and lowercase.
         if slugify(namespace.slug, separator='_') != namespace.slug:
             raise HTTPException(
@@ -45,19 +41,16 @@ async def create_namespace(request: Request, namespace: Namespace):
                 detail=f"Invalid slug '{namespace.slug}'. Must be lowercase, alphanumeric, and snake case"
             )
 
-        __namespace = {
-            **namespace.dict(),
-            "_id" : str(namespace_id)
-        }
+        pprint(namespace.dict())
 
         try:
             namespace.data_db = Database(**namespace.data_db_params)
             await namespace.data_db.connect()
-            request.app.state.data_db[namespace_id] = namespace.data_db
+            request.app.state.data_db[str(namespace.id_)] = namespace.data_db
 
             namespace.trace_db = Database(**namespace.trace_db_params)
             await namespace.trace_db.connect()
-            request.app.state.trace_db[namespace_id] = namespace.trace_db
+            request.app.state.trace_db[str(namespace.id_)] = namespace.trace_db
         except Exception as e:
             logger.error(f"Error connecting to data database: {e}")
             raise HTTPException(
@@ -73,7 +66,7 @@ async def create_namespace(request: Request, namespace: Namespace):
             RETURNING _id, slug, name
             """, namespace.dict())
 
-        logger.info(f"Created new namespace: {pformat({k : namespace.dict()[k] for k in ['id_', 'name', 'slug']})}")
+        logger.info(f"Created new namespace: {pformat(namespace.dict(include=['id_', 'name', 'slug']))}")
 
         api_key = generate_api_key()
         namespace.api_key = api_key
@@ -85,7 +78,7 @@ async def create_namespace(request: Request, namespace: Namespace):
             """, {
                 "_id": uuid7(),
                 "key": api_key,
-                "namespace_id": namespace_id,
+                "namespace_id": namespace.id_,
                 'name': f"Default API Key for {namespace.name}"
             })
 
