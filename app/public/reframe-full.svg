@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+        version="1.1"
+        id="Layer_1"
+        x="0px"
+        y="0px"
+        viewBox="111.2637 32.7508 2604.4503 769.1888" width="2604.4503" height="769.1888"
+        xml:space="preserve"
+        sodipodi:docname="reframe-full-light.svg"
+        inkscape:version="1.3 (0e150ed, 2023-07-21)"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:svg="http://www.w3.org/2000/svg"
+>
+  <defs id="defs3" />
+    <sodipodi:namedview
+            id="namedview3"
+            pagecolor="#ffffff"
+            bordercolor="#000000"
+            borderopacity="0.25"
+            inkscape:showpageshadow="2"
+            inkscape:pageopacity="0.0"
+            inkscape:pagecheckerboard="0"
+            inkscape:deskcolor="#d1d1d1"
+            inkscape:zoom="0.16177783"
+            inkscape:cx="1446.4281"
+            inkscape:cy="537.77456"
+            inkscape:window-width="1312"
+            inkscape:window-height="449"
+            inkscape:window-x="0"
+            inkscape:window-y="596"
+            inkscape:window-maximized="0"
+            inkscape:current-layer="Layer_1"
+    />
+    <style type="text/css" id="style1">
+
+      .st1{font-family:'OriyaSangamMN';}	.st2{font-size:550px;}
+      path, polyline, rect, text, line {
+          fill: black;
+      }
+      @media (prefers-color-scheme: dark) {
+          path, polyline, rect, text, line { fill: white; }
+      }
+  </style>
+
+  <path d="M 653.17072,148.3516 H 207.92063 c -53.38017,0 -96.65693,37.92753 -96.65693,84.71041 v 390.20996 c 0,46.78287 43.27676,84.71041 96.65693,84.71041 h 250.99903 c 9.47516,0 17.14798,-6.72968 17.14798,-15.02807 v -13.66357 c 0,-8.29839 -7.68312,-15.02806 -17.14798,-15.02806 H 207.92063 c -25.83011,0 -46.76816,-18.35114 -46.76816,-40.99071 V 233.06201 c 0,-22.63957 20.93805,-40.99071 46.76816,-40.99071 h 445.25009 c 25.83011,0 46.76816,18.35114 46.76816,40.99071 v 390.20996 c 0,22.63957 -20.93805,40.99071 -46.76816,40.99071 h -27.066 L 444.50093,495.93718 h 35.08899 c 72.85574,0 133.63065,-52.2316 133.66155,-116.07536 C 613.28237,315.79528 553.82574,263.6658 480.73313,263.6658 H 300.89047 c -12.96654,0 -25.68591,4.12135 -35.79962,11.61218 -10.97882,8.1313 -17.27157,19.05659 -17.27157,29.98188 v 290.96345 c 0,8.6047 7.9612,15.57572 17.77623,15.57572 h 20.57757 c 9.81503,0 17.77623,-6.97102 17.77623,-15.57572 V 312.85278 h 175.94958 c 42.15417,0 76.98568,29.61059 77.23285,66.55421 0.23688,37.09213 -34.12087,67.3432 -76.38832,67.3432 h -87.06847 c -12.99745,0 -25.10918,6.23771 -30.93846,16.42041 -6.42663,11.24088 -4.11964,24.69096 5.613,33.76906 l 219.61772,203.77467 c 5.00536,4.64116 11.95724,7.26805 19.2387,7.26805 h 45.96481 c 53.38017,0 96.65693,-37.92754 96.65693,-84.71041 V 233.06201 c 0,-46.78288 -43.27676,-84.71041 -96.65693,-84.71041 z" id="path1" style="stroke-width: 1.0" transform="matrix(1, 0, 0, 1, -1.1368683772161603e-13, 0)"></path>
+  <text transform="matrix(1, 0, 0, 1, 700, 0)" class="st1 st2" id="text1" style="stroke-width: 1.2px; white-space: pre;" x="100" y="630" dx="0 0 0 0 0 0 9" dy="0 0 0 0 0 0 10">eframe</text>
+</svg>

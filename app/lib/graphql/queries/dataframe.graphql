@@ -1,0 +1,11 @@
+query fetchDataset($workspace_id: uuid!) {
+  dataframe(where: { workspace_id: { _eq: $workspace_id } }) {
+    _id
+    _cr
+    _up
+    meta
+    name
+    workspace_id
+    slug
+  }
+}

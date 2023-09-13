@@ -1,0 +1,25 @@
+query FetchPage(
+  $offset: Int!
+  $limit: Int!
+  $featured: [Boolean!] = [false, true]
+) {
+  pages(
+    offset: $offset
+    limit: $limit
+    order_by: { created_at: desc }
+    where: { featured: { _in: $featured } }
+  ) {
+    created_at
+    id
+    title
+    updated_at
+    notion_url
+    cover_url
+    featured
+  }
+  pages_aggregate {
+    aggregate {
+      count
+    }
+  }
+}

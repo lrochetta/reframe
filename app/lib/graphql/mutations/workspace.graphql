@@ -1,0 +1,7 @@
+mutation InsertWorkspaceOne($object: workspace_insert_input!) {
+  insert_workspace_one(object: $object) {
+    _id
+    _cr
+    _up
+  }
+}
