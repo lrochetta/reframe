@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 import json
@@ -18,10 +18,10 @@ from fastapi.encoders import jsonable_encoder
 from slugify import slugify
 from uuid6 import uuid7
 
-from reframe.server.lib import sql_text
-from reframe.server.lib.api_key import generate_api_key
-from reframe.server.lib.db_connection import Database
-from reframe.server.lib.db_models.namespace import Namespace
+from leaptable.server.lib import sql_text
+from leaptable.server.lib.api_key import generate_api_key
+from leaptable.server.lib.db_connection import Database
+from leaptable.server.lib.db_models.namespace import Namespace
 
 # Global Variables
 router = APIRouter()

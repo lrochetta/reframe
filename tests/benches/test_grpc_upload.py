@@ -3,8 +3,8 @@ import time
 import pytest
 import numpy as np
 
-from nnext import NNextClient
-from reframe.client.http import Distance
+from leaptable import LeapTableClient
+from leaptable.client.http import Distance
 
 COLLECTION_NAME = 'test_grpc_upload'
 VECTOR_SIZE = 256
@@ -16,12 +16,12 @@ def get_data(num_vectors: int):
 
 
 def prepare_collection_rest():
-    client = NNextClient()
+    client = LeapTableClient()
     client.recreate_collection(COLLECTION_NAME, vector_size=VECTOR_SIZE, distance=Distance.COSINE)
 
 
 def upload_data(data):
-    client = NNextClient(prefer_grpc=True)
+    client = LeapTableClient(prefer_grpc=True)
     client.upload_collection(
         collection_name=COLLECTION_NAME,
         vectors=data,

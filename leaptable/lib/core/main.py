@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 import asyncio
@@ -21,13 +21,13 @@ from psycopg import sql
 import openai
 
 # Internal Libraries
-from reframe.lib.core import RedisStreamProcessor
-from reframe.lib.models.chat import openai_chat
-from reframe.lib.utils import fmt_payload
-from reframe.server.lib.db_connection import Database
+from leaptable.lib.core import RedisStreamProcessor
+from leaptable.lib.models.chat import openai_chat
+from leaptable.lib.utils import fmt_payload
+from leaptable.server.lib.db_connection import Database
 
 # Global Variables
-from reframe.server.lib.db_models.namespace import PROCESSING_STATUS, Namespace
+from leaptable.server.lib.db_models.namespace import PROCESSING_STATUS, Namespace
 
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
 TASK_EXPIRATION_DURATION = 60 * 60 * 24 * 2 # 48 Hours
@@ -66,10 +66,10 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
         self.new_event_loop = asyncio.new_event_loop()
         # self.new_event_loop.run_until_complete(self.connect_to_db())
-        logger.info(f"Initialized Reframe Agent [name={name} invoke_commands={invoke_commands}]")
+        logger.info(f"Initialized LeapTable Agent [name={name} invoke_commands={invoke_commands}]")
 
     def __del__(self):
-        logger.info(f"Deconstructed Reframe Agent [name={self.name}]")
+        logger.info(f"Deconstructed LeapTable Agent [name={self.name}]")
         self.new_event_loop.stop()
         # asyncio.run(self.disconnect_db())
 
@@ -151,7 +151,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 logger.debug(f"Received stream_key={stream_key}, message_id={message_id} message_data={pformat(message_data)}")
                 tool_name = self.tool_list[0].get('name')
 
-                tool_stream_key = f"nnext::instream::tool->{tool_name}"
+                tool_stream_key = f"leaptable::instream::tool->{tool_name}"
 
                 payload = json.loads(message_data['payload'])
                 prompt_text = message_data['prompt_text']
@@ -182,14 +182,14 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
                 red_stream.xadd(tool_stream_key, message)
 
-                task_key = f"nnext::task-pending::agent->{self.name}::correlation_id->{correlation_id}"
+                task_key = f"leaptable::task-pending::agent->{self.name}::correlation_id->{correlation_id}"
                 red_cache.set(
                     task_key,
                     json.dumps({}, default=str),
                     ex=CACHE_EXPIRATION_DURATION
                 )
 
-                prompt_text_key = f"nnext::prompt-text::agent->{self.name}::correlation_id->{correlation_id}"
+                prompt_text_key = f"leaptable::prompt-text::agent->{self.name}::correlation_id->{correlation_id}"
                 red_cache.set(
                     prompt_text_key,
                     json.dumps({
@@ -212,7 +212,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
         # Iterate over all the tools and get their results.
         tool_stream_key_map = {}
         for tool in self.tool_list:
-            tool_stream_key = f"nnext::outstream::agent->{self.name}::tool->{tool.get('id')}"
+            tool_stream_key = f"leaptable::outstream::agent->{self.name}::tool->{tool.get('id')}"
             tool_stream_key_map[tool_stream_key] = 0
         l = red_stream.xread(count=3, streams=tool_stream_key_map, block=5)
 
@@ -227,7 +227,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
                 logger.opt(ansi=True).info(f"Received result from tool->{tool.get('id')}. correlation_id->{correlation_id}, payload-><yellow>{fmt_payload(payload)}</yellow>")
 
-                result_key = f"nnext::memory::agent->{self.name}::tool->{tool_name}[0]::elem->{correlation_id}"
+                result_key = f"leaptable::memory::agent->{self.name}::tool->{tool_name}[0]::elem->{correlation_id}"
 
                 self.on_tool_result(tool_name, correlation_id, payload)
 
@@ -235,11 +235,11 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
 
     async def collate(self):
-        key_prefix = f"nnext::task-pending::agent->{self.name}::correlation_id->*"
+        key_prefix = f"leaptable::task-pending::agent->{self.name}::correlation_id->*"
         for key in red_stream.scan_iter(key_prefix):
             correlation_id = key.split("::correlation_id->")[1]
 
-            prompt_text_key = f"nnext::prompt-text::agent->{self.name}::correlation_id->{correlation_id}"
+            prompt_text_key = f"leaptable::prompt-text::agent->{self.name}::correlation_id->{correlation_id}"
             llm_prompt = red_cache.get(prompt_text_key)
             if llm_prompt:
                 llm_prompt = json.loads(llm_prompt)
@@ -252,7 +252,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
                 tool_output_template = tool.get('output')
                 tool_key = tool.get('name')
                 tool_results = red_stream.get(
-                    f"nnext::memory::agent->{self.name}::tool->{tool.get('id')}[0]::elem->{correlation_id}"
+                    f"leaptable::memory::agent->{self.name}::tool->{tool.get('id')}[0]::elem->{correlation_id}"
                 )
                 if tool_results is None:
                     tools_result_set_complete = False
@@ -308,7 +308,7 @@ class SingleActionChatAgent(RedisStreamProcessor):
 
                 logger.debug(f"openai Result-->> {pformat(response)}")
 
-                result_key = f"nnext::agent-results::agent->{self.name}::correlation_id->{correlation_id}"
+                result_key = f"leaptable::agent-results::agent->{self.name}::correlation_id->{correlation_id}"
                 red_cache.set(result_key, response, ex=CACHE_EXPIRATION_DURATION)
 
             if db_result:

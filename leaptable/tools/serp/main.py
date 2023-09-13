@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 from os import environ as os_env
@@ -12,7 +12,7 @@ from serpapi import GoogleSearch
 from loguru import logger
 
 # Internal Libraries
-from reframe.lib.core.tool import Tool
+from leaptable.lib.core.tool import Tool
 
 # Global Variables
 SERP_API_KEY = os_env.get("SERP_API_KEY")

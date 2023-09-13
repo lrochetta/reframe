@@ -43,7 +43,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./docker-compose/postgres/init.sh:/docker-entrypoint-initdb.d/init-hasura.sh:ro
 
-  dc-reference-agent:
+  leaptable-api:
     extends:
       file: dc-agents/docker-compose.yaml
       service: dc-reference-agent

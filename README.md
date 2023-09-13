@@ -1,9 +1,9 @@
-# <a href="https://reframe.is/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/nnext-ultra-wide-tingle.png" alt="Reframe"></a>
+# <a href="https://leaptable.is/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/leaptable-ultra-wide-tingle.png" alt="LeapTable"></a>
 
 ## About
 
 
-Reframe is an experimental agent framework powered by GPT-4 that operates on dataframes.
+LeapTable is an experimental agent framework powered by GPT-4 that operates on dataframes.
 Powered by the remarkable GPT-4, this program ingeniously links together thoughts from
 Large Language Models (LLMs) to autonomously accomplish your desired objectives.
 As a groundbreaking example of GPT-4 operating entirely independently, Auto-GPT pushes
@@ -14,7 +14,7 @@ the frontiers of AI's potential to new and awe-inspiring heights.
 
 ## Installation
 
-By far the easiest way to install the Reframe server is to use docker.
+By far the easiest way to install the LeapTable server is to use docker.
 
 ```sql
 wget https://raw.githubusercontent.com/peterwnjenga/aigent/main/docker-compose.yaml
@@ -28,11 +28,11 @@ https://discord.gg/KkFzHRTF5K
 pip install reframer
 ```
 
-## Reframe strives to be
+## LeapTable strives to be
 
 * 🥽 Transparent - through logging, and metrics that create visibility into the inner operations.
 * 🤸🏾 Flexible - AI Agents and tools are independent of each other, allowing you to create workflows easily.
-* 🧩 Composable. Reframe are simply executable python functions and classes with a well defined interface. You can easily construct sophisticated agents from basic building blocks. These building blocks can be obtained from our ecosystem or you can develop custom ones that are specific to your organization.
+* 🧩 Composable. LeapTable are simply executable python functions and classes with a well defined interface. You can easily construct sophisticated agents from basic building blocks. These building blocks can be obtained from our ecosystem or you can develop custom ones that are specific to your organization.
 * 🛹 Incrementally adoptable - By using existing technologies such as Docker, Kubernetes and Celery Aigent enables you to seamlessly adopt it with your organization. From simple ZeroShot agents to sophisticated multi-step AI agents each component can be integrated into your existing workflows.
 * 🔨 Reusable - once a tool is running, it can be utilized by various agents, thereby reducing operational overhead, increasing throughput and making tools easy to reason about.
 * 🏎️ Fast by taking advantage of data parallelism and prompt sequencing in a manner increases efficiency and reduces the overall number of expensive API calls made to LLM endpoints.
@@ -48,4 +48,4 @@ pip install reframer
 
 ## Documentation
 
-More documentation is available here: [https://reframe.is/docs](https://to.reframe.is/f0Ms)
+More documentation is available here: [https://leaptable.is/docs](https://to.leaptable.is/f0Ms)

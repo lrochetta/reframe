@@ -12,6 +12,6 @@ class VectorStoreBase:
 
     def get_database(self) -> Any:
         if self.vectorstore == "pinecone":
-            from reframe.lib.vectorstores.pinecone import PineconeVectorstore
+            from leaptable.lib.vectorstores.pinecone import PineconeVectorstore
 
             return PineconeVectorstore()

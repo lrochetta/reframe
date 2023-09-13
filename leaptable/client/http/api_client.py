@@ -4,12 +4,12 @@ from typing import Any, Awaitable, Callable, Dict, Generic, Type, TypeVar, overl
 
 from httpx import AsyncClient, Client, Request, Response
 from pydantic import ValidationError
-from reframe.client.http.api.cluster_api import AsyncClusterApi, SyncClusterApi
-from reframe.client.http.api.collections_api import AsyncCollectionsApi, SyncCollectionsApi
-from reframe.client.http.api.default_api import AsyncDefaultApi, SyncDefaultApi
-from reframe.client.http.api.points_api import AsyncPointsApi, SyncPointsApi
-from reframe.client.http.api.snapshots_api import AsyncSnapshotsApi, SyncSnapshotsApi
-from reframe.client.http.exceptions import ResponseHandlingException, UnexpectedResponse
+from leaptable.client.http.api.cluster_api import AsyncClusterApi, SyncClusterApi
+from leaptable.client.http.api.collections_api import AsyncCollectionsApi, SyncCollectionsApi
+from leaptable.client.http.api.default_api import AsyncDefaultApi, SyncDefaultApi
+from leaptable.client.http.api.points_api import AsyncPointsApi, SyncPointsApi
+from leaptable.client.http.api.snapshots_api import AsyncSnapshotsApi, SyncSnapshotsApi
+from leaptable.client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
 ClientT = TypeVar("ClientT", bound="ApiClient")
 AsyncClientT = TypeVar("AsyncClientT", bound="AsyncApiClient")

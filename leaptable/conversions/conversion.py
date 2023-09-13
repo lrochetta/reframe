@@ -3,9 +3,9 @@ from typing import Dict, Any
 
 import betterproto
 
-from reframe.client import grpc
-from reframe.client.http.models import models as rest
-from reframe.client.grpc import Value, ListValue, Struct, NullValue
+from leaptable.client import grpc
+from leaptable.client.http.models import models as rest
+from leaptable.client.grpc import Value, ListValue, Struct, NullValue
 
 
 def json_to_value(payload: Any) -> Value:

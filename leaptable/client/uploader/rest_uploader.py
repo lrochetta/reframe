@@ -1,8 +1,8 @@
 from typing import Iterable, Any
 
-from reframe.client.http import SyncApis
-from reframe.client.http import PointsBatch, Batch
-from reframe.client.uploader.uploader import BaseUploader
+from leaptable.client.http import SyncApis
+from leaptable.client.http import PointsBatch, Batch
+from leaptable.client.uploader.uploader import BaseUploader
 
 
 def upload_batch(openapi_client: SyncApis, collection_name: str, batch) -> bool:

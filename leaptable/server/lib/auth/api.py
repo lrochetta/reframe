@@ -2,7 +2,7 @@ from fastapi import HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from starlette.status import HTTP_403_FORBIDDEN
 
-from reframe.server.lib.prisma import prisma
+from leaptable.server.lib.prisma import prisma
 
 api_key_header = APIKeyHeader(name="X_NNEXT_API_KEY", auto_error=False)
 bearer_token_header = APIKeyHeader(name="Authorization", auto_error=False)

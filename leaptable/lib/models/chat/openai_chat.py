@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 from os import environ as env
@@ -14,8 +14,8 @@ from loguru import logger
 import openai
 
 # Internal Libraries
-from reframe.lib.core.decor import with_cache
-from reframe.lib.utils import fmt_payload
+from leaptable.lib.core.decor import with_cache
+from leaptable.lib.utils import fmt_payload
 
 # Global Variables
 
@@ -31,7 +31,7 @@ red_cache = redis.StrictRedis(
     password=REDIS_PASSWORD, decode_responses=True)
 # ------------------------------
 
-@with_cache(prefix="nnext::fn-cache::agent-run::fn->openai_chat", ex=CACHE_EXPIRATION_DURATION)
+@with_cache(prefix="leaptable::fn-cache::agent-run::fn->openai_chat", ex=CACHE_EXPIRATION_DURATION)
 async def openai_chat(messages, *args, **kwargs):
     num_retries = kwargs.pop('num_retries', 3)
     for i in range(num_retries):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 import asyncio
@@ -18,8 +18,8 @@ import redis
 from loguru import logger
 
 # Internal Libraries
-from reframe.lib.utils import fmt_payload
-from reframe.lib.core import RedisStreamProcessor
+from leaptable.lib.utils import fmt_payload
+from leaptable.lib.core import RedisStreamProcessor
 
 # Global Variables
 CACHE_EXPIRATION_DURATION = 60 * 60 * 24 * 90 # 90 days
@@ -82,7 +82,7 @@ class AsyncTool(RedisStreamProcessor):
                 logger.opt(ansi=True).info(f"Running tool for agent:: <yellow>{agent}</yellow> with args: {args} and kwargs: {kwargs}. payload: {payload} correlation_id: <yellow>{correlation_id}</yellow>")
                 arg_dict_str = json.dumps(args_dict, sort_keys=True)
                 arg_dict_hash = hashlib.sha256(arg_dict_str.encode('utf-8')).hexdigest()
-                cache_key = f"nnext::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
+                cache_key = f"leaptable::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
 
                 found_in_cache = False
                 if self.read_cache:
@@ -131,7 +131,7 @@ class AsyncTool(RedisStreamProcessor):
                                 ex=CACHE_EXPIRATION_DURATION
                             )
                 # Write the results to the outstream to be picked up by the agent
-                res_stream_key = f"nnext::outstream::agent->{agent}::tool->{self.tool_name}"
+                res_stream_key = f"leaptable::outstream::agent->{agent}::tool->{self.tool_name}"
 
                 red_stream.xadd(res_stream_key, {
                     'payload': json.dumps(result_dict, default=str),
@@ -198,7 +198,7 @@ class Tool(RedisStreamProcessor):
 
                 arg_dict_str = json.dumps(args_dict, sort_keys=True)
                 arg_dict_hash = hashlib.sha256(arg_dict_str.encode('utf-8')).hexdigest()
-                cache_key = f"nnext::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
+                cache_key = f"leaptable::fn-cache::agent-run::tool->{self.tool_name}::elem->{arg_dict_hash}"
 
                 found_in_cache = False
                 if self.read_cache:
@@ -247,7 +247,7 @@ class Tool(RedisStreamProcessor):
                                 ex=CACHE_EXPIRATION_DURATION
                             )
                 # Write the results to the outstream to be picked up by the agent
-                res_stream_key = f"nnext::outstream::agent->{agent}::tool->{self.tool_name}"
+                res_stream_key = f"leaptable::outstream::agent->{agent}::tool->{self.tool_name}"
 
                 red_stream.xadd(res_stream_key, {
                     'payload': json.dumps(result_dict, default=str),

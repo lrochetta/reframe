@@ -2,7 +2,7 @@
 name = "leapt"
 version = "0.0.1"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
-authors = ["Reframe Team <pypi@leaptable.us>"]
+authors = ["LeapTable Team <pypi@leaptable.us>"]
 packages = [
     { include = "leaptable" }
 ]

@@ -7,7 +7,7 @@ from decouple import config
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from reframe.server.lib.prisma import prisma
+from leaptable.server.lib.prisma import prisma
 
 jwtSecret = config("JWT_SECRET")
 

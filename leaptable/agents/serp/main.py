@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 
@@ -9,8 +9,8 @@ __copyright__ = "Copyright © 2023 Reframe AI, Co."
 from loguru import logger
 
 # Internal Libraries
-from reframe.lib.models.llms.main import OpenAI
-from reframe.lib.core.main import SingleActionChatAgent
+from leaptable.lib.models.llms.main import OpenAI
+from leaptable.lib.core.main import SingleActionChatAgent
 
 # Global Variables
 llm = OpenAI()

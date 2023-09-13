@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package nnext;
+package leaptable;
 
 import "json_with_int.proto";
 

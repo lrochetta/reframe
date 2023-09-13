@@ -6,9 +6,9 @@ from typing import Optional, Iterable, Union, List
 
 import numpy as np
 
-from reframe.conversions.common_types import Record
-from reframe.client.http.models import ExtendedPointId
-from reframe.parallel_processor import Worker
+from leaptable.conversions.common_types import Record
+from leaptable.client.http.models import ExtendedPointId
+from leaptable.parallel_processor import Worker
 
 
 def iter_batch(iterable, size) -> Iterable:

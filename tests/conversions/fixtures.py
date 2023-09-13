@@ -3,8 +3,8 @@ from typing import List
 
 import betterproto
 
-from reframe.client import grpc
-from reframe.conversions.conversion import json_to_value
+from leaptable.client import grpc
+from leaptable.conversions.conversion import json_to_value
 
 point_id = grpc.PointId(num=1)
 point_id_1 = grpc.PointId(num=2)

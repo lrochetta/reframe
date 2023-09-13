@@ -4,9 +4,9 @@ from typing import Iterable, Any
 
 from grpclib.client import Channel
 
-from reframe.conversions.conversion import payload_to_grpc, RestToGrpc
-from reframe.client.grpc import PointsStub, PointStruct, PointId
-from reframe.client.uploader.uploader import BaseUploader
+from leaptable.conversions.conversion import payload_to_grpc, RestToGrpc
+from leaptable.client.grpc import PointsStub, PointStruct, PointId
+from leaptable.client.uploader.uploader import BaseUploader
 
 
 def iter_over_async(ait, loop):

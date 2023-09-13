@@ -6,51 +6,51 @@ from typing import Optional, Iterable, List, Union, Tuple, Type
 import numpy as np
 from loguru import logger
 
-from reframe.client import grpc
-from reframe.conversions import common_types as types
-from reframe.conversions.conversion import RestToGrpc, GrpcToRest
-from reframe.client.http import SyncApis
-from reframe.client.http import models as rest
-from reframe.parallel_processor import ParallelWorkerPool
-from reframe.client.uploader.grpc_uploader import GrpcBatchUploader
-from reframe.client.uploader.uploader import BaseUploader
+from leaptable.client import grpc
+from leaptable.conversions import common_types as types
+from leaptable.conversions.conversion import RestToGrpc, GrpcToRest
+from leaptable.client.http import SyncApis
+from leaptable.client.http import models as rest
+from leaptable.parallel_processor import ParallelWorkerPool
+from leaptable.client.uploader.grpc_uploader import GrpcBatchUploader
+from leaptable.client.uploader.uploader import BaseUploader
 
 
-class NNextClient:
-    """Entry point to communicate with NNext service via REST or gPRC API.
+class LeapTableClient:
+    """Entry point to communicate with LeapTable service via REST or gPRC API.
 
     It combines interface classes and endpoint implementation.
     Additionally, it provides custom implementations for frequently used methods like initial collection upload.
 
-    All methods in NNextClient accept both gRPC and REST structures as an input.
+    All methods in LeapTableClient accept both gRPC and REST structures as an input.
     Conversion will be performed automatically.
 
     .. note::
         This module methods are wrappers around generated client code for gRPC and REST methods.
         If you need lower-level access to generated clients, use following properties:
 
-        - :meth:`NNextClient.grpc_points`
-        - :meth:`NNextClient.grpc_collections`
-        - :meth:`NNextClient.rest`
+        - :meth:`LeapTableClient.grpc_points`
+        - :meth:`LeapTableClient.grpc_collections`
+        - :meth:`LeapTableClient.rest`
 
     .. note::
         If you need to use async versions of API, please consider using raw implementations of clients directly:
 
-        - For REST: :class:`~reframe.http.api_client.AsyncApis`
-        - For gRPC: :class:`~reframe.grpc.PointsStub` and :class:`~reframe.grpc.CollectionsStub`
+        - For REST: :class:`~leaptable.http.api_client.AsyncApis`
+        - For gRPC: :class:`~leaptable.grpc.PointsStub` and :class:`~leaptable.grpc.CollectionsStub`
 
     Args:
-        host: Host name of NNext service. Default: `api.reframe.io`
+        host: Host name of LeapTable service. Default: `api.leaptable.io`
         port: Port of the REST API interface. Default: 6040
         grpc_port: Port of the gRPC interface. Default: 6041
         prefer_grpc: If `true` - use gPRC interface whenever possible in custom methods.
-        api_key: API key for authentication in NNext Cloud.
+        api_key: API key for authentication in LeapTable Cloud.
         **kwargs: Additional arguments passed directly into REST client initialization
     """
 
     def __init__(self,
                  api_key,
-                 host="api.reframe.io",
+                 host="api.leaptable.io",
                  port=6040,
                  version="v0.0.1",
                  grpc_port=6041,
@@ -226,7 +226,7 @@ class NNextClient:
 
         `Search with filter`::
 
-            reframe.search(
+            leaptable.search(
                 collection_name="test_collection",
                 query_vector=[1.0, 0.1, 0.2, 0.7],
                 query_filter=Filter(
@@ -324,9 +324,9 @@ class NNextClient:
             score_threshold: Optional[float] = None,
             top: int = None,
     ) -> List[types.ScoredPoint]:
-        """Recommend points: search for similar points based on already stored in NNext examples.
+        """Recommend points: search for similar points based on already stored in LeapTable examples.
 
-        Provide IDs of the stored points, and NNext will perform search based on already existing vectors.
+        Provide IDs of the stored points, and LeapTable will perform search based on already existing vectors.
         This functionality is especially useful for recommendation over existing collection of points.
 
         Args:
@@ -334,7 +334,7 @@ class NNextClient:
             positive:
                 List of stored point IDs, which should be used as reference for similarity search.
                 If there is only one ID provided - this request is equivalent to the regular search with vector of that point.
-                If there are more than one IDs, NNext will attempt to search for similar to all of them.
+                If there are more than one IDs, LeapTable will attempt to search for similar to all of them.
                 Recommendation for multiple vectors is experimental. Its behaviour may change in the future.
             negative:
                 List of stored point IDs, which should be dissimilar to the search result.
@@ -761,7 +761,7 @@ class NNextClient:
 
             # Assign payload value with key `"key"` to points 1, 2, 3.
             # If payload value with specified key already exists - it will be overwritten
-            reframe.set_payload(
+            leaptable.set_payload(
                 collection_name="test_collection",
                 wait=True,
                 payload={

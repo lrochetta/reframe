@@ -4,9 +4,9 @@ import "collections_service.proto";
 import "points_service.proto";
 import "snapshots_service.proto";
 
-package nnext;
+package leaptable;
 
-service NNext {
+service LeapTable {
   rpc HealthCheck (HealthCheckRequest) returns (HealthCheckReply) {}
 }
 

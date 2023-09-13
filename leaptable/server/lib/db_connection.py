@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 import collections
@@ -15,9 +15,13 @@ from pprint import pformat
 
 # External Libraries
 import asyncpg
+from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel
 from dataclasses import dataclass
+
+load_dotenv()
+logger.info("Loaded .env file")
 
 def pyformat2psql(query: str, named_args: Dict[str, Any]) -> Tuple[str, List[Any]]:
     positional_generator = itertools.count(1)
@@ -45,11 +49,11 @@ def pyformat2psql(query: str, named_args: Dict[str, Any]) -> Tuple[str, List[Any
 
 @dataclass
 class Database():
-    database: str = os_env.get('REFRAME_META_DB_NAME', 'postgres')
-    host: str = os_env.get('REFRAME_META_DB_HOST', "localhost")
-    user: str = os_env.get('REFRAME_META_DB_USER', 'postgres')
-    password: str = os_env.get('REFRAME_META_DB_PASS')
-    port: str = os_env.get('REFRAME_META_DB_POST')
+    database: str = os_env.get('LEAPTABLE_META_DB_NAME', 'postgres')
+    host: str = os_env.get('LEAPTABLE_META_DB_HOST', "localhost")
+    user: str = os_env.get('LEAPTABLE_META_DB_USER', 'postgres')
+    password: str = os_env.get('LEAPTABLE_META_DB_PASS')
+    port: str = os_env.get('LEAPTABLE_META_DB_POST')
 
     def __init__(self,
                  host: str = None, user: str = None,

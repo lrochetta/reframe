@@ -1,1 +1,1 @@
-from .nnext_client import NNextClient as NNextClient
+from .leaptable_client import LeapTableClient as LeapTableClient

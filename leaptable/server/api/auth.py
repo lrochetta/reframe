@@ -2,13 +2,13 @@ import json
 
 from fastapi import APIRouter, HTTPException, status
 
-from reframe.server.lib.auth.prisma import (
+from leaptable.server.lib.auth.prisma import (
     encryptPassword,
     signJWT,
     validatePassword,
 )
-from reframe.server.lib.db_models.auth import SignIn, SignInOut, SignUp
-from reframe.server.lib.prisma import prisma
+from leaptable.server.lib.db_models.auth import SignIn, SignInOut, SignUp
+from leaptable.server.lib.prisma import prisma
 
 router = APIRouter()
 

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "collections.proto";
 
-package nnext;
+package leaptable;
 
 service Collections {
   /*

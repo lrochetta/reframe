@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 import os
@@ -14,7 +14,7 @@ from loguru import logger
 import validators
 
 # Internal Libraries
-from reframe.lib.core.tool import AsyncTool
+from leaptable.lib.core.tool import AsyncTool
 
 # Global Variables
 BRIGHT_DATA_KEY = os.environ.get("BRIGHT_DATA_KEY")

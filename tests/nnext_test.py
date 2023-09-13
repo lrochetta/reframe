@@ -8,12 +8,12 @@ from time import sleep
 import numpy as np
 import pytest
 
-from nnext import NNextClient
-from reframe.conversions.common_types import Record
-from reframe.conversions.conversion import grpc_to_payload, json_to_value
-from reframe.client.http import Filter, FieldCondition, Range, PointStruct, HasIdCondition, PointIdsList, \
+from leaptable import LeapTableClient
+from leaptable.conversions.common_types import Record
+from leaptable.conversions.conversion import grpc_to_payload, json_to_value
+from leaptable.client.http import Filter, FieldCondition, Range, PointStruct, HasIdCondition, PointIdsList, \
     PayloadSchemaType, MatchValue, Distance, CreateAliasOperation, CreateAlias, OptimizersConfigDiff
-from reframe.client.uploader.grpc_uploader import payload_to_grpc
+from leaptable.client.uploader.grpc_uploader import payload_to_grpc
 
 DIM = 100
 NUM_VECTORS = 1_000
@@ -55,7 +55,7 @@ def test_record_upload(prefer_grpc):
         for idx in range(NUM_VECTORS)
     )
 
-    client = NNextClient(prefer_grpc=prefer_grpc)
+    client = LeapTableClient(prefer_grpc=prefer_grpc)
 
     client.recreate_collection(
         collection_name=COLLECTION_NAME,
@@ -69,7 +69,7 @@ def test_record_upload(prefer_grpc):
         parallel=2
     )
 
-    # By default, NNext indexes data updates asynchronously, so client don't need to wait before sending next batch
+    # By default, LeapTable indexes data updates asynchronously, so client don't need to wait before sending next batch
     # Let's give it a second to actually add all points to a collection.
     # If you need to change this behaviour - simply enable synchronous processing by enabling `wait=true`
     sleep(1)
@@ -98,7 +98,7 @@ def test_record_upload(prefer_grpc):
 
 @pytest.mark.parametrize("prefer_grpc", [False, True])
 @pytest.mark.parametrize("numpy_upload", [False, True])
-def test_nnext_integration(prefer_grpc, numpy_upload):
+def test_leaptable_integration(prefer_grpc, numpy_upload):
     vectors_path = create_random_vectors()
 
     if numpy_upload:
@@ -113,7 +113,7 @@ def test_nnext_integration(prefer_grpc, numpy_upload):
 
     payload = random_payload()
 
-    client = NNextClient(prefer_grpc=prefer_grpc)
+    client = LeapTableClient(prefer_grpc=prefer_grpc)
 
     client.recreate_collection(
         collection_name=COLLECTION_NAME,
@@ -121,7 +121,7 @@ def test_nnext_integration(prefer_grpc, numpy_upload):
         distance=Distance.DOT,
     )
 
-    # Call NNext API to retrieve list of existing collections
+    # Call LeapTable API to retrieve list of existing collections
     collections = client.get_collections().collections
 
     # Print all existing collections
@@ -141,7 +141,7 @@ def test_nnext_integration(prefer_grpc, numpy_upload):
         parallel=2
     )
 
-    # By default, NNext indexes data updates asynchronously, so client don't need to wait before sending next batch
+    # By default, LeapTable indexes data updates asynchronously, so client don't need to wait before sending next batch
     # Let's give it a second to actually add all points to a collection.
     # If you need to change this behaviour - simply enable synchronous processing by enabling `wait=true`
     sleep(1)
@@ -387,7 +387,7 @@ def test_nnext_integration(prefer_grpc, numpy_upload):
     "prefer_grpc", [False, True]
 )
 def test_points_crud(prefer_grpc):
-    client = NNextClient(prefer_grpc=prefer_grpc)
+    client = LeapTableClient(prefer_grpc=prefer_grpc)
 
     client.recreate_collection(
         collection_name=COLLECTION_NAME,
@@ -458,8 +458,8 @@ def test_value_serialization():
 
 
 def test_serialization():
-    from reframe.client.grpc import PointStruct as PointStructGrpc
-    from reframe.client.grpc import PointId as PointIdGrpc
+    from leaptable.client.grpc import PointStruct as PointStructGrpc
+    from leaptable.client.grpc import PointId as PointIdGrpc
 
     point = PointStructGrpc(
         id=PointIdGrpc(num=1),
@@ -487,7 +487,7 @@ def test_serialization():
 
 
 if __name__ == '__main__':
-    test_nnext_integration()
+    test_leaptable_integration()
     test_points_crud()
     test_has_id_condition()
     test_insert_float()

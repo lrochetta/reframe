@@ -2,9 +2,9 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
-from reframe.server.lib.db_models.document import Document
-from reframe.server.lib.prisma import prisma
+from leaptable.server.lib.auth.prisma import JWTBearer, decodeJWT
+from leaptable.server.lib.db_models.document import Document
+from leaptable.server.lib.prisma import prisma
 
 router = APIRouter()
 

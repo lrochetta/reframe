@@ -1,7 +1,7 @@
 from typing import Union, List
 
-from reframe.client.http import models as rest
-from reframe.client import grpc
+from leaptable.client.http import models as rest
+from leaptable.client import grpc
 
 Filter = Union[rest.Filter, grpc.Filter]
 SearchParams = Union[rest.SearchParams, grpc.SearchParams]

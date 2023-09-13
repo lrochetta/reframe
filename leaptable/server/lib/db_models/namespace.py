@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 
@@ -20,7 +20,7 @@ from pydantic.types import UUID, Json
 from uuid6 import uuid7
 from validators import uuid
 
-from reframe.server.lib.db_connection import Database
+from leaptable.server.lib.db_connection import Database
 
 def transform_str_to_json(v: dict | None) -> dict:
     if v:

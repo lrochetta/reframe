@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "points.proto";
 
-package nnext;
+package leaptable;
 
 import "google/protobuf/struct.proto";
 

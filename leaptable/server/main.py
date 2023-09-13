@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable AI, Co."
 
 # Standard Libraries
 import time
@@ -13,16 +13,16 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 # Internal Libraries
-from reframe.server.lib import tenant
-from reframe.server.routers import router
-from reframe.server.lib.db_session import database_instance
+from leaptable.server.lib import tenant
+from leaptable.server.routers import router
+from leaptable.server.lib.db_session import database_instance
 
 load_dotenv()
 logger.info("Loaded .env file")
 
 app = FastAPI(
-    title="aigent",
-    description="🧑🏽‍🎤 Supercharge your workflows on data tables using LLM agents.",
+    title="leaptable",
+    description="Supercharge your workflows on data tables using LLM agents.",
     version="0.0.1",
 )
 
@@ -55,7 +55,7 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    prisma.disconnect()
+    logger.info("Shutting down server.")
 
 
 app.include_router(router)

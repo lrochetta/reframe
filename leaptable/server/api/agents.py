@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 import json
@@ -14,11 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated, Optional
 from loguru import logger
 
-from reframe.server.lib.db_connection import Database
-from reframe.server.lib.db_models.namespace import Namespace, Job, PROCESSING_STATUS
-# from reframe.server.lib.auth.prisma import JWTBearer, decodeJWT
-from reframe.server.lib.db_models.agent import Agent
-# from reframe.server.lib.prisma import prisma
+from leaptable.server.lib.db_connection import Database
+from leaptable.server.lib.db_models.namespace import Namespace, Job, PROCESSING_STATUS
+# from leaptable.server.lib.auth.prisma import JWTBearer, decodeJWT
+from leaptable.server.lib.db_models.agent import Agent
+# from leaptable.server.lib.prisma import prisma
 
 router = APIRouter()
 from os import environ as os_env
@@ -261,9 +261,9 @@ async def single_action_chat_agent(
             break
 
     if is_browser_agent:
-        stream_key = "nnext::instream::agent->browser"
+        stream_key = "leaptable::instream::agent->browser"
     elif is_serp_agent:
-        stream_key = "nnext::instream::agent->serp"
+        stream_key = "leaptable::instream::agent->serp"
     else:
         raise Exception("Unknown agent type")
 

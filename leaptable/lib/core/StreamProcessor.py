@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Reframe AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Inc."
 
 # Standard Libraries
 from os import environ as os_env
@@ -33,7 +33,7 @@ class RedisStreamProcessor:
     def __init__(self, instream_key, *args, **kwargs):
         super().__init__(*args, **kwargs)  # forwards all unused arguments
 
-        self.instream_key = f"nnext::instream::{instream_key }"
+        self.instream_key = f"leaptable::instream::{instream_key }"
         self.last_processed_stream_key = f"{self.instream_key}::processed_pointer"
         self.last_processed_message_id = red_stream.get(self.last_processed_stream_key)
         logger.debug(f"Instream key: {self.instream_key}")

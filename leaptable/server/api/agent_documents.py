@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
-from reframe.server.lib.auth.prisma import JWTBearer
-from reframe.server.lib.db_models.agent_document import AgentDocument
-from reframe.server.lib.prisma import prisma
+from leaptable.server.lib.auth.prisma import JWTBearer
+from leaptable.server.lib.db_models.agent_document import AgentDocument
+from leaptable.server.lib.prisma import prisma
 
 router = APIRouter()
 
