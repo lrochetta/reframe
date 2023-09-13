@@ -56,31 +56,56 @@ services:
 #      ports:
 #        - 48000:8000
 #
-#  agent-browser:
-#    image: leaptable/leaptable:latest
-#    restart: always
-#    command: [ "python", "leaptable/agents/browser/main.py" ]
-#    env_file:
-#      - .env.local
-#
-#  agent-serpapi:
-#    image: leaptable/leaptable:latest
-#    restart: always
-#    command: [ "python", "leaptable/agents/serp/main.py" ]
-#    env_file:
-#      - .env.local
-#
-#  tool-browser:
-#    image: leaptable/leaptable:latest
-#    restart: always
-#    command: [ "python", "leaptable/tools/browser/main.py" ]
-#    env_file:
-#      - .env.local
+  agent-browser:
+    image: leaptable/leaptable:latest
+    restart: always
+    command: [ "python", "leaptable/agents/browser/main.py" ]
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      REDIS_STREAM_HOST: "redis"
+      REDIS_CACHE_HOST: "redis"
+    env_file:
+      - .env.local
+
+  agent-serpapi:
+    image: leaptable/leaptable:latest
+    restart: always
+    command: [ "python", "leaptable/agents/serp/main.py" ]
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      REDIS_STREAM_HOST: "redis"
+      REDIS_CACHE_HOST: "redis"
+    env_file:
+      - .env.local
+
+  tool-browser:
+    image: leaptable/leaptable:latest
+    restart: always
+    command: [ "python", "leaptable/tools/browser/main.py" ]
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      REDIS_STREAM_HOST: "redis"
+      REDIS_CACHE_HOST: "redis"
+    env_file:
+      - .env.local
+
 
   tool-serpapi:
     image: leaptable/leaptable:latest
     restart: always
     command: [ "python", "leaptable/tools/serp/main.py" ]
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      REDIS_STREAM_HOST: "redis"
+      REDIS_CACHE_HOST: "redis"
     env_file:
       - .env.local
 
