@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "leapt"
+name = "leaptable"
 version = "0.0.1"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
 authors = ["LeapTable Team <pypi@leaptable.us>"]
@@ -8,7 +8,7 @@ packages = [
 ]
 readme = "README.md"
 homepage = "https://leaptable.us/docs/"
-repository = "https://github.com/peterwnjenga/aigent"
+repository = "https://github.com/peterwnjenga/leaptable"
 keywords = ["leaptable", "agents", "dataframes", "client"]
 
 
@@ -61,6 +61,7 @@ playwright = "^1.36.0"
 twine = "^4.0.2"
 jinja2 = "^3.1.2"
 validators = "^0.21.2"
+asyncpg = "^0.28.0"
 
 [tool.poetry.dev-dependencies]
 coverage = "^6.3.3"
