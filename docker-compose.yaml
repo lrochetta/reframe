@@ -32,8 +32,8 @@ services:
   postgres:
     image: postgres
     restart: always
-    ports:
-      - "45432:5432"
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: "leaptable"
       POSTGRES_PASSWORD: "leaptable"
@@ -41,5 +41,49 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  redis:
+    image: redis
+    restart: always
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+#  api:
+#      image: leaptable/leaptable:latest
+#      restart: always
+#      command: [ "uvicorn", "leaptable.server.main:app" ]
+#      env_file:
+#        - .env.local
+#      ports:
+#        - 48000:8000
+#
+#  agent-browser:
+#    image: leaptable/leaptable:latest
+#    restart: always
+#    command: [ "python", "leaptable/agents/browser/main.py" ]
+#    env_file:
+#      - .env.local
+#
+#  agent-serpapi:
+#    image: leaptable/leaptable:latest
+#    restart: always
+#    command: [ "python", "leaptable/agents/serp/main.py" ]
+#    env_file:
+#      - .env.local
+#
+#  tool-browser:
+#    image: leaptable/leaptable:latest
+#    restart: always
+#    command: [ "python", "leaptable/tools/browser/main.py" ]
+#    env_file:
+#      - .env.local
+
+  tool-serpapi:
+    image: leaptable/leaptable:latest
+    restart: always
+    command: [ "python", "leaptable/tools/serp/main.py" ]
+    env_file:
+      - .env.local
+
 volumes:
   postgres-data:
+  leaptable-data:

@@ -4,7 +4,7 @@ from starlette.status import HTTP_403_FORBIDDEN
 
 from leaptable.server.lib.prisma import prisma
 
-api_key_header = APIKeyHeader(name="X_NNEXT_API_KEY", auto_error=False)
+api_key_header = APIKeyHeader(name="X_LEAPTABLE_API_KEY", auto_error=False)
 bearer_token_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 

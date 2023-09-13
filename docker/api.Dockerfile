@@ -22,7 +22,5 @@ WORKDIR $APP_HOME
 
 RUN poetry install --no-dev
 
-RUN alias l='ls -alt --color'
-
 # Timeout is set to 0 to disable the timeouts of the workers to allow Cloud Run to handle instance scaling.
 CMD uvicorn leaptable.server.main:app

@@ -5,8 +5,8 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("NNEXT_META_DB_URL")
-  shadowDatabaseUrl = env("NNEXT_META_DB_SHADOW_URL")
+  url               = env("LEAPTABLE_META_DB_URL")
+  shadowDatabaseUrl = env("LEAPTABLE_META_DB_SHADOW_URL")
 }
 
 enum AgentType {
