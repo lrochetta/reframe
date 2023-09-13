@@ -1,0 +1,37 @@
+subscription GetDataframeStream($workspace_id: uuid) {
+  dataframe(
+    order_by: { _cr: desc_nulls_last }
+    where: { workspace_id: { _eq: $workspace_id } }
+  ) {
+    _id
+    _cr
+    _up
+    analysis_column
+    bp_version
+    name
+    slug
+    blueprint(order_by: { _cr: asc_nulls_last }) {
+      _id
+      ai_gen
+      dataframe_id
+      display_format
+      display_name
+      horizontal_align
+      index
+      overflow
+      selected
+      shown
+      sticky_left
+      sticky_right
+      system
+      type
+      slug
+      vertical_align
+      width
+    }
+    meta
+    table_name
+    workspace_id
+    icon
+  }
+}

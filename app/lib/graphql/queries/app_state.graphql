@@ -1,0 +1,18 @@
+query FetchLatestAppState($user_id: uuid!, $session_id: String!) {
+  app_state(
+    where: {
+      _and: [
+        { user_id: { _eq: $user_id } }
+        { session_id: { _eq: $session_id } }
+      ]
+    }
+    limit: 1
+    order_by: { _cr: desc_nulls_last }
+  ) {
+    _id
+    _cr
+    _up
+    meta
+    user_id
+  }
+}

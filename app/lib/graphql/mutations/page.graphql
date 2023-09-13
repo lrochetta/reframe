@@ -1,0 +1,13 @@
+mutation UpsertPagesMany($objects: [pages_insert_input!] = []) {
+  insert_pages(
+    objects: $objects
+    on_conflict: {
+      constraint: pages_pk
+      update_columns: [title, notion_url, cover_url, created_at, updated_at]
+    }
+  ) {
+    returning {
+      id
+    }
+  }
+}

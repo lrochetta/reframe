@@ -1,0 +1,12 @@
+mutation InsertWorkspaceMembershipOne(
+  $object: workspace_membership_insert_input!
+) {
+  insert_workspace_membership_one(object: $object) {
+    _id
+    _cr
+    _up
+    role
+    user_id
+    workspace_id
+  }
+}
