@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "reframer"
+name = "leapt"
 version = "0.0.1"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
-authors = ["Reframe Team <pypi@reframe.is>"]
+authors = ["Reframe Team <pypi@leaptable.us>"]
 packages = [
-    { include = "reframe" }
+    { include = "leaptable" }
 ]
 readme = "README.md"
-homepage = "https://reframe.is/docs/"
+homepage = "https://leaptable.us/docs/"
 repository = "https://github.com/peterwnjenga/aigent"
-keywords = ["reframe", "agents", "dataframes", "client"]
+keywords = ["leaptable", "agents", "dataframes", "client"]
 
 
 [tool.poetry.dependencies]
