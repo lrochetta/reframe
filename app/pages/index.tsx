@@ -6,7 +6,6 @@ import { getSession } from "@auth0/nextjs-auth0";
 import { useRouter } from "next/router";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Loader from "@/components/Common/Loader";
-import { getSorted } from "@/lib/algolia";
 
 const IndexPage = (props) => {
   const isCSR = typeof window !== "undefined";
@@ -17,9 +16,6 @@ const IndexPage = (props) => {
       if (user_loading) {
         return <Loader />;
       }
-
-
-      // router.push("/data/frame/-");
     }
     router.push("/data/frame/-");
   }
@@ -33,19 +29,6 @@ const IndexPage = (props) => {
 
 export async function getServerSideProps(ctx) {
   const session = await getSession(ctx.req, ctx.res);
-  const page_num = 0;
-  const page_size = 3;
-  let posts = await getSorted({
-    index: "wiki_sort_creation_date_desc",
-    page_size,
-    page: page_num,
-  });
-
-  let use_cases = await getSorted({
-    index: "use-cases",
-    page_size,
-    page: page_num,
-  });
 
   if (!session) {
     return {
