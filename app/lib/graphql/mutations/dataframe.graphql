@@ -1,5 +1,0 @@
-mutation UpdateBlueprint($_id: uuid!, $width: Int!) {
-  update_blueprint_by_pk(pk_columns: { _id: $_id }, _set: { width: $width }) {
-    _id
-  }
-}
