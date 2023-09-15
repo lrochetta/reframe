@@ -1,8 +1,0 @@
-# Block all crawlers
-User-agent: *
-Disallow: /api/
-Disallow: /wiki/[block_id]
-
-# Allow all crawlers
-User-agent: *
-Allow: /
