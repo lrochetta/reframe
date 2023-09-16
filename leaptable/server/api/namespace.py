@@ -58,7 +58,6 @@ async def create_namespace(request: Request, namespace: Namespace):
                 detail=f"Error connecting to data database: {e}"
             )  from None
 
-
         await request.app.state.meta_db.execute(
             """ 
             INSERT INTO namespace (_id, slug, name, data_db_params, trace_db_params)

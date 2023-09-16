@@ -17,15 +17,15 @@ the frontiers of AI's potential to new and awe-inspiring heights.
 By far the easiest way to install the LeapTable server is to use docker.
 
 ```sql
-wget https://raw.githubusercontent.com/peterwnjenga/aigent/main/docker-compose.yaml
-docker-compose up -d
+wget https://git.leaptable.co/docker-compose.yaml
+docker compose -p leaptable -d
 ```
 
 https://discord.gg/KkFzHRTF5K
 
 ### Install reframe client
 ```shell
-pip install reframer
+pip install leaptable
 ```
 
 ## LeapTable strives to be
@@ -48,4 +48,4 @@ pip install reframer
 
 ## Documentation
 
-More documentation is available here: [https://leaptable.is/docs](https://to.leaptable.is/f0Ms)
+More documentation is available here: [https://leaptable.co/docs](https://to.leaptable.is/f0Ms)

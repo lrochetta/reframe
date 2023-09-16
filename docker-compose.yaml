@@ -54,15 +54,15 @@ services:
       ## postgres database to store Hasura metadata
       HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres@postgres:5432/hasura
 
-#  api:
-#      image: leaptable/leaptable:latest
-#      restart: always
-#      command: [ "uvicorn", "leaptable.server.main:app" ]
-#      env_file:
-#        - .env.local
-#      ports:
-#        - 48000:8000
-#
+  api:
+      image: leaptable/leaptable:latest
+      restart: always
+      command: [ "uvicorn", "leaptable.server.main:app" ]
+      env_file:
+        - .env.local
+      ports:
+        - 43000:8000
+
   studio:
     image: leaptable/leaptable-studio:latest
     restart: always
@@ -72,7 +72,7 @@ services:
     env_file:
       - .env.local
     ports:
-      - 43000:3000
+      - 43001:3000
 
   agent-browser:
     image: leaptable/leaptable-engine:latest
