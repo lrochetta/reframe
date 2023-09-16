@@ -1,13 +1,16 @@
-# <a href="https://leaptable.is/"><img src="https://d3g1vr8yw3euzd.cloudfront.net/leaptable-ultra-wide-tingle.png" alt="LeapTable"></a>
+[![Watch the video](https://img.youtube.com/vi/M860LUfwiQc/maxresdefault.jpg)](https://youtu.be/M860LUfwiQc)
 
 ## About
 
 
 LeapTable is an experimental agent framework powered by GPT-4 that operates on dataframes.
-Powered by the remarkable GPT-4, this program ingeniously links together thoughts from
-Large Language Models (LLMs) to autonomously accomplish your desired objectives.
-As a groundbreaking example of GPT-4 operating entirely independently, Auto-GPT pushes
-the frontiers of AI's potential to new and awe-inspiring heights.
+
+Leaptable unleashes the future with AI Agents that work for you. These virtual assistants automate workflows,
+search the web, explore LinkedIn, and more - with human-like intelligence but without human limitations.
+Leaptable combines an effortless a low-code database, dozens of tireless AI agents and powerful Language Models like
+GPT, so you can manage data smarter, not harder. Let AI Agents do the work so you can focus on insights.
+
+
 
 
 [Installation](#installation) |  [Quick Start](#quick-start) | [Documentation](#documentation)
