@@ -34,28 +34,45 @@ services:
     restart: always
     env_file:
       - .env
+    ports:
+      - 45432:5432
     environment:
       POSTGRES_USER: "leaptable"
       POSTGRES_PASSWORD: "leaptable"
       POSTGRES_DB: "leaptable"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - pgy-data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis
     restart: always
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
 
   hasura:
     image: hasura/graphql-engine:v2.30.0
     restart: always
     environment:
-      ## postgres database to store Hasura metadata
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres@postgres:5432/hasura
+      # postgres database to store Hasura metadata
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://leaptable:leaptable@postgres:5432/leaptable-gql
+      # this env var can be used to add the above postgres database to Hasura as a data source.
+      # this can be removed/updated based on your needs
+      PG_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      ## enable the console served by server
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      ## enable debugging mode. It is recommended to disable this in production
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      # Set the admin secret. Change this to something more secure.
+      HASURA_GRAPHQL_ADMIN_SECRET: "leaptable"
+      # Unauthorized roles
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "anonymous"
+    depends_on:
+      - postgres
+    ports:
+    - 48080:8080
 
   api:
-      image: leaptable/leaptable:latest
+      image: leaptable/api:latest
       restart: always
       command: [ "uvicorn", "leaptable.server.main:app", "--host", "0.0.0.0"]
       env_file:
@@ -64,7 +81,7 @@ services:
         - 43000:8000
 
   studio:
-    image: leaptable/leaptable-studio:latest
+    image: leaptable/studio:latest
     restart: always
     depends_on:
       - postgres
@@ -75,7 +92,7 @@ services:
       - 43001:3000
 
   agent-browser:
-    image: leaptable/leaptable-engine:latest
+    image: leaptable/engine:latest
     restart: always
     command: [ "python", "leaptable/agents/browser/main.py" ]
     depends_on:
@@ -88,7 +105,7 @@ services:
       - .env.local
 
   agent-serpapi:
-    image: leaptable/leaptable-engine:latest
+    image: leaptable/engine:latest
     restart: always
     command: [ "python", "leaptable/agents/serp/main.py" ]
     depends_on:
@@ -101,7 +118,7 @@ services:
       - .env.local
 
   tool-browser:
-    image: leaptable/leaptable-engine:latest
+    image: leaptable/engine:latest
     restart: always
     command: [ "python", "leaptable/tools/browser/main.py" ]
     depends_on:
@@ -112,9 +129,12 @@ services:
       REDIS_CACHE_HOST: "redis"
     env_file:
       - .env.local
+    deploy:
+      mode: replicated
+      replicas: 3
 
   tool-serpapi:
-    image: leaptable/leaptable-engine:latest
+    image: leaptable/engine:latest
     restart: always
     command: [ "python", "leaptable/tools/serp/main.py" ]
     depends_on:
@@ -125,7 +145,14 @@ services:
       REDIS_CACHE_HOST: "redis"
     env_file:
       - .env.local
+    deploy:
+      mode: replicated
+      replicas: 3
 
 volumes:
-  postgres-data:
-  leaptable-data:
+  pgy-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /leap-data

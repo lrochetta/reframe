@@ -24,7 +24,9 @@ wget https://git.leaptable.co/docker-compose.yaml
 docker compose -p leaptable -d
 ```
 
-https://discord.gg/KkFzHRTF5K
+Discord: https://discord.gg/KkFzHRTF5K
+
+Slack: https://leaptable.slack.com
 
 ### Install reframe client
 ```shell

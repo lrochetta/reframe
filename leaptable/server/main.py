@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = ["Peter W. Njenga"]
-__copyright__ = "Copyright © 2023 Leaptable AI, Co."
+__copyright__ = "Copyright © 2023 Leaptable, Co."
 
 # Standard Libraries
 import time

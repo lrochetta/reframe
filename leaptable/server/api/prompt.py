@@ -15,18 +15,17 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Form, Body, Uplo
 from pprint import pprint, pformat
 
 # Internal Libraries
-from reframe_api.server.lib.db_models.dataframe import Blueprint, DATA_TYPE, Dataframe, HistoryItem
-from reframe_api.server.lib.security import get_user_token
-from reframe_api.server.lib.db_models.user import User
-from reframe_api.server.lib import hasura
-from reframe_api.server.lib.util import flatten_prompt, extract_prompt_input_column_recursive
+from leaptable.server.lib.db_models.dataframe import Blueprint, DATA_TYPE, Dataframe, HistoryItem
+from leaptable.server.lib.security import get_api_key
+from leaptable.server.lib.db_models.namespace import Namespace
+from leaptable.server.lib import hasura
+from leaptable.server.lib.util import flatten_prompt, extract_prompt_input_column_recursive
 
 router = APIRouter()
 
 @router.post("/prompt/run/")
-async def dataframe_upload(request: Request, user: Annotated[User, Depends(get_user_token)], payload: dict = Body(...)):
+async def dataframe_upload(request: Request, namespace: Annotated[Namespace, Depends(get_api_key)], payload: dict = Body(...)):
     """Upload dataframe endpoint"""
-    workspace_id = payload.get('workspace_id')
     dataframe_id = payload.get('dataframe_id')
     initiator_id = payload.get('initiator_id')
     prompt_version = payload.get('prompt_version')
@@ -58,12 +57,6 @@ async def dataframe_upload(request: Request, user: Annotated[User, Depends(get_u
     logger.info(
         f"Processing prompt {pformat(prompt)} with limit {limit} and output column [name={output_column_name} slug=({output_column_slug})]")
 
-    workspace = await get_workspace(request, payload.get('workspace_id'))
-    db_dataframe = await request.app.state.admin_db.fetch_one(
-        "SELECT * FROM dataframe WHERE _id = (%(_id)s)", {'_id': dataframe_id}
-    )
-    dataframe = Dataframe(**db_dataframe)
-
     # Retrieve the column names
     column_name = None
     if prompt_version == 'v1.0':
@@ -85,6 +78,11 @@ async def dataframe_upload(request: Request, user: Annotated[User, Depends(get_u
         raise HTTPException
 
     logger.info(f"Input column name: '{input_column}' → output column '{output_column_slug}'. Prompt: '{prompt_text}'")
+
+    db_dataframe = await request.app.state.meta_db.fetch_one(
+        "SELECT * FROM dataframe WHERE _id = (%(_id)s)", {'_id': dataframe_id}
+    )
+    dataframe = Dataframe(**db_dataframe)
 
     # Add new output columns to the database
     await workspace.data_db.execute(
@@ -185,85 +183,3 @@ async def dataframe_upload(request: Request, user: Annotated[User, Depends(get_u
 
 
     return {"status": "success", "message": "Dataframe uploaded successfully"}
-
-import json
-
-from fastapi import APIRouter, Depends
-
-from leaptable.server.lib.auth.prisma import JWTBearer, decodeJWT
-from leaptable.server.lib.db_models.prompt import Prompt
-from leaptable.server.lib.prisma import prisma
-
-router = APIRouter()
-
-
-@router.post("/prompts", name="Create a prompt", description="Create a new prompt")
-async def create_prompt(body: Prompt):
-    """Create prompt endpoint"""
-    decoded = decodeJWT(token)
-
-    prompt = prisma.prompt.create(
-        {
-            "name": body.name,
-            "input_variables": json.dumps(body.input_variables),
-            "template": body.template,
-            "userId": decoded["userId"],
-        },
-        include={"user": True},
-    )
-
-    return {"success": True, "data": prompt}
-
-
-@router.get("/prompts", name="List prompts", description="List all prompts")
-async def read_prompts(token=Depends(JWTBearer())):
-    """List prompts endpoint"""
-    decoded = decodeJWT(token)
-    prompts = prisma.prompt.find_many(
-        where={"userId": decoded["userId"]},
-        include={"user": True},
-        order={"createdAt": "desc"},
-    )
-
-    return {"success": True, "data": prompts}
-
-
-@router.get(
-    "/prompts/{promptId}",
-    name="Get prompt",
-    description="Get a specific prompt",
-)
-async def read_prompt(promptId: str, token=Depends(JWTBearer())):
-    """Get prompt endpoint"""
-    prompt = prisma.prompt.find_unique(where={"id": promptId}, include={"user": True})
-
-    return {"success": True, "data": prompt}
-
-
-@router.delete(
-    "/prompts/{promptId}",
-    name="Delete prompt",
-    description="Delete a specific prompt",
-)
-async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
-    """Delete prompt endpoint"""
-    prisma.prompt.delete(where={"id": promptId})
-
-    return {"success": True, "data": None}
-
-
-@router.patch(
-    "/prompts/{promptId}", name="Patch prompt", description="Patch a specific prompt"
-)
-async def patch_prompt(promptId: str, body: dict, token=Depends(JWTBearer())):
-    """Patch prompt endpoint"""
-    input_variables = body["input_variables"]
-    if input_variables or input_variables == []:
-        body["input_variables"] = json.dumps(input_variables)
-
-    prompt = prisma.prompt.update(
-        data=body,
-        where={"id": promptId},
-    )
-
-    return {"success": True, "data": prompt}
