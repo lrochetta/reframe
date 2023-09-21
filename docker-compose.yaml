@@ -24,7 +24,7 @@
 # * The SERVICE PORTS numbering start at 32123, 32122 etc. to avoid other
 #   existing instances of databases.
 #
-# * The login credentials are, where possible, all "aigent" to avoid unnecessary
+# * The login credentials are, where possible, all "leaptable" to avoid unnecessary
 #   mental overhead.
 
 version: "3.6"
@@ -33,16 +33,21 @@ services:
     image: postgres
     restart: always
     env_file:
-      - .env
+      - .env.local
     ports:
       - 45432:5432
     environment:
-      POSTGRES_USER: "leaptable"
-      POSTGRES_PASSWORD: "leaptable"
-      POSTGRES_DB: "leaptable"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: "postgres"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
     volumes:
-      - pgy-data:/var/lib/postgresql/data
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - leap-data-postgresql:/var/lib/postgresql/data
+      - ./docker/01-init.sh:/docker-entrypoint-initdb.d/01-init.sh
+      - ./docker/init-meta-db.sql:/scripts/init-meta-db.sql
 
   redis:
     image: redis
@@ -51,25 +56,22 @@ services:
   hasura:
     image: hasura/graphql-engine:v2.30.0
     restart: always
+    env_file:
+      - .env.local
     environment:
       # postgres database to store Hasura metadata
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://leaptable:leaptable@postgres:5432/leaptable-gql
-      # this env var can be used to add the above postgres database to Hasura as a data source.
-      # this can be removed/updated based on your needs
-      PG_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgres@postgres:5432/$HASURA_GRAPHQL_DB_NAME
       ## enable the console served by server
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       ## enable debugging mode. It is recommended to disable this in production
       HASURA_GRAPHQL_DEV_MODE: "true"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      # Set the admin secret. Change this to something more secure.
-      HASURA_GRAPHQL_ADMIN_SECRET: "leaptable"
       # Unauthorized roles
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "anonymous"
     depends_on:
       - postgres
     ports:
-    - 48080:8080
+      - 48080:8080
 
   api:
       image: leaptable/api:latest
@@ -79,80 +81,106 @@ services:
         - .env.local
       ports:
         - 43000:8000
-
-  studio:
-    image: leaptable/studio:latest
-    restart: always
-    depends_on:
+      depends_on:
       - postgres
       - hasura
-    env_file:
-      - .env.local
-    ports:
-      - 43001:3000
 
-  agent-browser:
-    image: leaptable/engine:latest
-    restart: always
-    command: [ "python", "leaptable/agents/browser/main.py" ]
-    depends_on:
-      - redis
-      - postgres
-    environment:
-      REDIS_STREAM_HOST: "redis"
-      REDIS_CACHE_HOST: "redis"
+  init-workspace:
+    image: ubuntu
+    command: bash /02-init-workspace.sh
     env_file:
       - .env.local
+    volumes:
+        - ./docker/02-init-workspace.sh:/02-init-workspace.sh
+    depends_on:
+      - api
 
-  agent-serpapi:
-    image: leaptable/engine:latest
-    restart: always
-    command: [ "python", "leaptable/agents/serp/main.py" ]
-    depends_on:
-      - redis
-      - postgres
-    environment:
-      REDIS_STREAM_HOST: "redis"
-      REDIS_CACHE_HOST: "redis"
-    env_file:
-      - .env.local
+#  agent-browser:
+#    image: leaptable/engine:latest
+#    restart: always
+#    command: [ "python", "leaptable/agents/browser/main.py" ]
+#    depends_on:
+#      init-db:
+#        condition: service_completed_successfully
+#    environment:
+#      REDIS_STREAM_HOST: "redis"
+#      REDIS_CACHE_HOST: "redis"
+#    env_file:
+#      - .env.local
 
-  tool-browser:
-    image: leaptable/engine:latest
-    restart: always
-    command: [ "python", "leaptable/tools/browser/main.py" ]
-    depends_on:
-      - redis
-      - postgres
-    environment:
-      REDIS_STREAM_HOST: "redis"
-      REDIS_CACHE_HOST: "redis"
-    env_file:
-      - .env.local
-    deploy:
-      mode: replicated
-      replicas: 3
-
-  tool-serpapi:
-    image: leaptable/engine:latest
-    restart: always
-    command: [ "python", "leaptable/tools/serp/main.py" ]
-    depends_on:
-      - redis
-      - postgres
-    environment:
-      REDIS_STREAM_HOST: "redis"
-      REDIS_CACHE_HOST: "redis"
-    env_file:
-      - .env.local
-    deploy:
-      mode: replicated
-      replicas: 3
+#  studio:
+#    image: leaptable/studio:latest
+#    restart: always
+#    depends_on:
+#      - postgres
+#      - hasura
+#    env_file:
+#      - .env.local
+#    ports:
+#      - 43001:3000
+#
+#  agent-browser:
+#    image: leaptable/engine:latest
+#    restart: always
+#    command: [ "python", "leaptable/agents/browser/main.py" ]
+#    depends_on:
+#      - redis
+#      - postgres
+#    environment:
+#      REDIS_STREAM_HOST: "redis"
+#      REDIS_CACHE_HOST: "redis"
+#    env_file:
+#      - .env.local
+#
+#  agent-serpapi:
+#    image: leaptable/engine:latest
+#    restart: always
+#    command: [ "python", "leaptable/agents/serp/main.py" ]
+#    depends_on:
+#      - redis
+#      - postgres
+#    environment:
+#      REDIS_STREAM_HOST: "redis"
+#      REDIS_CACHE_HOST: "redis"
+#    env_file:
+#      - .env.local
+#
+#  tool-browser:
+#    image: leaptable/engine:latest
+#    restart: always
+#    command: [ "python", "leaptable/tools/browser/main.py" ]
+#    depends_on:
+#      - redis
+#      - postgres
+#    environment:
+#      REDIS_STREAM_HOST: "redis"
+#      REDIS_CACHE_HOST: "redis"
+#    env_file:
+#      - .env.local
+#    deploy:
+#      mode: replicated
+#      replicas: 3
+#
+#  tool-serpapi:
+#    image: leaptable/engine:latest
+#    restart: always
+#    command: [ "python", "leaptable/tools/serp/main.py" ]
+#    depends_on:
+#      - redis
+#      - postgres
+#    environment:
+#      REDIS_STREAM_HOST: "redis"
+#      REDIS_CACHE_HOST: "redis"
+#    env_file:
+#      - .env.local
+#    deploy:
+#      mode: replicated
+#      replicas: 3
 
 volumes:
-  pgy-data:
+  leap-data-postgresql:
     driver: local
     driver_opts:
       o: bind
       type: none
-      device: /leap-data
+      device: /leap-data/postgresql

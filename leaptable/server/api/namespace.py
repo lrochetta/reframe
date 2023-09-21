@@ -43,14 +43,56 @@ async def create_namespace(request: Request, namespace: Namespace):
 
         pprint(namespace.dict())
 
+        namespace_short_id = str(namespace.id_).split("-")[3]
+        data_db_name = f"leaptable_datadb_{namespace_short_id}_{namespace.slug}"
+        trace_db_name = f"leaptable_tracedb_{namespace_short_id}_{namespace.slug}"
+
+        namespace.data_db_params = {
+            "host": os_env.get("LEAPTABLE_DATA_DB_HOST"),
+            "database": data_db_name,
+            "password": os_env.get("LEAPTABLE_DATA_DB_PASS"),
+            "user": os_env.get("LEAPTABLE_DATA_DB_USER"),
+            "port": os_env.get("LEAPTABLE_DATA_DB_PORT")
+        }
+        namespace.trace_db_params = {
+            "host": os_env.get("LEAPTABLE_TRACE_DB_HOST"),
+            "database": trace_db_name,
+            "password": os_env.get("LEAPTABLE_TRACE_DB_PASS"),
+            "user": os_env.get("LEAPTABLE_DATA_DB_USER"),
+            "port": os_env.get("LEAPTABLE_DATA_DB_PORT")
+        }
+
+        # Create the data database and grant privileges to the leaptable user.
+        await request.app.state.meta_db.execute(
+            "CREATE DATABASE {db_name}".format(db_name=data_db_name)
+        )
+
+        await request.app.state.meta_db.execute(
+            "GRANT ALL PRIVILEGES ON DATABASE {db_name} TO leaptable".format(db_name=data_db_name)
+        )
+        logger.info(f"Created Data database {data_db_name} for workspace {namespace.slug}")
+
+        # Create the trace database and grant privileges to the leaptable user.
+        await request.app.state.meta_db.execute(
+            "CREATE DATABASE {db_name}".format(db_name=trace_db_name)
+        )
+
+        await request.app.state.meta_db.execute(
+            "GRANT ALL PRIVILEGES ON DATABASE {db_name} TO leaptable".format(db_name=trace_db_name)
+        )
+        logger.info(f"Created Trace database {trace_db_name} for workspace {namespace.slug}")
+
         try:
+            pprint(namespace.data_db_params)
             namespace.data_db = Database(**namespace.data_db_params)
             await namespace.data_db.connect()
             request.app.state.data_db[str(namespace.id_)] = namespace.data_db
+            logger.info("Connected to namespace data_db")
 
             namespace.trace_db = Database(**namespace.trace_db_params)
             await namespace.trace_db.connect()
             request.app.state.trace_db[str(namespace.id_)] = namespace.trace_db
+            logger.info("Connected to namespace trace_db")
         except Exception as e:
             logger.error(f"Error connecting to data database: {e}")
             raise HTTPException(
@@ -87,9 +129,6 @@ async def create_namespace(request: Request, namespace: Namespace):
         await namespace.trace_db.execute("CREATE SCHEMA IF NOT EXISTS trace")
 
 
-        await namespace.trace_db.execute("CREATE EXTENSION IF NOT EXISTS moddatetime;")
-
-
         # Create the trace tables
         tables = {
             'trace': sql_text.CREATE_TABLE_TRACE,
@@ -104,7 +143,6 @@ async def create_namespace(request: Request, namespace: Namespace):
             logger.info(f"Created new table: {table_name}")
 
         logger.info(f"Done initializing namespace: {pformat({k : namespace.dict()[k] for k in ['id_', 'name', 'slug']})}")
-
 
         return {"success": True, "data": {k : namespace.dict()[k] for k in ['id_', 'name', 'slug', 'api_key']}}
     except Exception as e:

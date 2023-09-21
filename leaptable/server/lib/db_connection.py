@@ -20,7 +20,7 @@ from loguru import logger
 from pydantic import BaseModel
 from dataclasses import dataclass
 
-load_dotenv()
+load_dotenv('.env.local')
 logger.info("Loaded .env file")
 
 def pyformat2psql(query: str, named_args: Dict[str, Any]) -> Tuple[str, List[Any]]:
@@ -53,11 +53,11 @@ class Database():
     host: str = os_env.get('LEAPTABLE_META_DB_HOST', "localhost")
     user: str = os_env.get('LEAPTABLE_META_DB_USER', 'postgres')
     password: str = os_env.get('LEAPTABLE_META_DB_PASS')
-    port: str = os_env.get('LEAPTABLE_META_DB_POST')
+    port: str = os_env.get('LEAPTABLE_META_DB_PORT', 5432)
 
     def __init__(self,
                  host: str = None, user: str = None,
-                 password: str = None, port: str = 5432,
+                 password: str = None, port: str = None,
                  database: str = None) -> None:
 
         # Set self.host to the value passed in or default to checking environment variable

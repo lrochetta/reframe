@@ -46,8 +46,6 @@ async def get_api_key(request: Request, api_key_header: str = Security(api_key_h
             """SELECT * FROM namespace WHERE _id = %(_id)s""",
             {'_id': namespace_id})
 
-        print(api_key_header, namespace_id, db_namespace)
-
         # Connect to the namespace and create the trace schema
         if namespace_id not in request.app.state.trace_db:
             trace_db = Database(**json.loads(db_namespace['trace_db_params']))
@@ -72,6 +70,7 @@ async def get_api_key(request: Request, api_key_header: str = Security(api_key_h
             'trace_db_params': {},
             'data_db_params': {}
         }
+
         return Namespace(**ns)
 
     except Exception as e:

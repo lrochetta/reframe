@@ -1,16 +1,5 @@
--- HASURA
-CREATE DATABASE "leaptable-meta";
-CREATE DATABASE "leaptable-data";
-CREATE DATABASE "leaptable-gql";
-
-CREATE ROLE "postgres";
-
-GRANT CONNECT ON DATABASE "leaptable-meta" TO postgres;
-GRANT CONNECT ON DATABASE "leaptable-data" TO postgres;
-GRANT CONNECT ON DATABASE "leaptable-gql" TO postgres;
-
 -- WORKSPACE
-create table workspace
+CREATE TABLE IF NOT EXISTS workspace
 (
     _id                 uuid             default gen_random_uuid() not null
         constraint workspace_pk
@@ -25,16 +14,11 @@ create table workspace
     hasura_params       jsonb            default '{}'::jsonb
 );
 
-alter table workspace
-    owner to postgres;
-
 create unique index workspace_slug_uindex
     on workspace (slug);
 
-
-
 -- DATAFRAME
-create table dataframe
+CREATE TABLE IF NOT EXISTS dataframe
 (
     _id             uuid                     default gen_random_uuid()         not null
         constraint dataset_pkey
@@ -54,11 +38,8 @@ create table dataframe
     icon            varchar(20)              default '📘'::character varying
 );
 
-alter table dataframe
-    owner to postgres;
-
 -- BLUEPRINT
-create table blueprint
+CREATE TABLE IF NOT EXISTS blueprint
 (
     _id              uuid                     default gen_random_uuid()         not null
         constraint blueprint_pk
@@ -87,9 +68,6 @@ create table blueprint
     is_processing    boolean                  default false                     not null
 );
 
-alter table blueprint
-    owner to postgres;
-
 create unique index blueprint__id_uindex
     on blueprint (_id);
 
@@ -97,7 +75,7 @@ create unique index blueprint__dataframe_id_slug_uindex
     on blueprint (dataframe_id, slug);
 
 -- auto-generated definition
-create table "user"
+CREATE TABLE IF NOT EXISTS "user"
 (
     _id                 uuid                     default gen_random_uuid() not null
         constraint user_pk
@@ -111,14 +89,11 @@ create table "user"
     last_seen           timestamp with time zone
 );
 
-alter table "user"
-    owner to postgres;
-
 create unique index user__id_uindex
     on "user" (_id);
 
 -- Namespace
-create table namespace
+CREATE TABLE IF NOT EXISTS namespace
 (
     _id             uuid                     default gen_random_uuid() not null
         constraint namespace_pk
@@ -132,14 +107,11 @@ create table namespace
     data_db_params  jsonb                    default '{}'::jsonb       not null
 );
 
-alter table namespace
-    owner to postgres;
-
 create unique index namespace__id_uindex
     on namespace (_id);
 
 -- API Keys
-create table api_key
+CREATE TABLE IF NOT EXISTS api_key
 (
     _id          uuid                     default gen_random_uuid() not null
         constraint api_key_pk
@@ -155,9 +127,6 @@ create table api_key
     usage_count  bigint                   default 0                 not null,
     name         varchar(100)                                       not null
 );
-
-alter table api_key
-    owner to postgres;
 
 create unique index api_key__id_uindex
     on api_key (_id);
