@@ -35,6 +35,13 @@
 
 Reframe is an experimental agent framework powered by GPT-4 that operates on dataframes.
 
+ <a href="https://youtu.be/M860LUfwiQc">
+   <img
+     src="https://d3g1vr8yw3euzd.cloudfront.net/media/img/reframe-screen-recording.gif"
+     alt="Discord AI"
+   />
+ </a>
+
 Reframe unleashes the future with AI Agents that work for you. These virtual assistants automate workflows,
 search the web, explore LinkedIn, and more - with human-like intelligence but without human limitations.
 Reframe combines an effortless a low-code database, dozens of tireless AI agents and powerful Language Models like
