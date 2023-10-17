@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "reframe-py"
-version = "0.0.3"
+version = "0.0.4"
 description = "Create, run and manage your intelligent LLM agents on dataframes."
 authors = ["ReframeAI Team <pypi@reframe.is>"]
 packages = [
