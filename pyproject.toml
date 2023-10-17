@@ -21,7 +21,6 @@ httpx = { version = "^0.23.0", extras = ["http2"] }
 jinja2 = "^3.1.2"
 loguru = "^0.5.3"
 nest-asyncio = "^1.5.5"
-openai = "^0.27.6"
 pyarrow = "^12.0.1"
 pydantic = "^2.3.0"
 pydantic-settings = "^2.0.3"
